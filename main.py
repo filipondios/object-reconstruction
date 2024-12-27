@@ -1,46 +1,69 @@
 import pyray as rl
-from model import Model
 
-# Images are indexed using a 2 color palette (black and white).
-# The images precission is 8-bit.
-model = Model('cube')
-
-
-
-# Begin the renderization of the obtained object.
-rl.init_window(1000, 1000, "3D Reconstruction")
+rl.init_window(1000, 700, "3D Reconstruction")
 rl.set_trace_log_level(rl.TraceLogLevel.LOG_ERROR)
 rl.set_target_fps(60)
 
+# Initialize the 3D Camera
 camera = rl.Camera3D()
 camera.projection = rl.CameraProjection.CAMERA_ORTHOGRAPHIC
-camera.position = rl.Vector3(40, 40, 40)
-camera.target = rl.Vector3(10,10,10)
-camera.up = rl.Vector3(0,1,0)
-camera.fovy = 89
+camera.position   = rl.Vector3(40,40,40)
+camera.target     = rl.Vector3(0,0,0)
+camera.up         = rl.Vector3(0,1,0)
+camera.fovy       = 90
 
+""" 
+Camera rotation axis. The center of the rotation is the origin (0,0,0).
+
+- 'ud_axis' stands for up/down axis, meaning the axis for a rotation inside a
+   perpendicular plane to the XZ plane. It is calculated by taking the direction
+   vector from the origin to the camera position, then calculating its projection
+   to the XZ plane and then taking the perpendicular vector to the later.
+
+- 'lr_axis' stands for left/right axis, meaning a rotation along the Y axis.
+  It can also be thougt as a rotation over the origin inside a paralell plane
+  to the XZ plane.
+"""
+ 
+ud_axis = rl.vector3_normalize(rl.Vector3(camera.position.z, 0, -camera.position.x))
+lr_axis = rl.Vector3(0,1,0)
 
 while(not rl.window_should_close()):
-    if(rl.is_key_down(rl.KeyboardKey.KEY_DOWN)):
-        camera.position.y -= 10
-    if(rl.is_key_down(rl.KeyboardKey.KEY_UP)):
-        camera.position.y += 10
-    if(rl.is_key_down(rl.KeyboardKey.KEY_LEFT)):
-        camera.position.x -= 10
     if(rl.is_key_down(rl.KeyboardKey.KEY_RIGHT)):
-        camera.position.x += 10
+        # Rotate the camera counter-clockwise horizontally. The up/down axis must be also rotated
+        # to preserve being perpendicular to the camera direction vector.
+        camera.position = rl.vector3_rotate_by_axis_angle(camera.position, lr_axis, 0.05)
+        ud_axis = rl.vector3_rotate_by_axis_angle(ud_axis, lr_axis, 0.05)
+
+    if(rl.is_key_down(rl.KeyboardKey.KEY_LEFT)):
+        # Same as pressing KEY_RIGHT, but this time we rotate the camera clockwise.
+        camera.position = rl.vector3_rotate_by_axis_angle(camera.position, lr_axis, -0.05)
+        ud_axis = rl.vector3_rotate_by_axis_angle(ud_axis, lr_axis, -0.05)
+
+    if(rl.is_key_down(rl.KeyboardKey.KEY_UP)):
+        # Rotate the camera clockwise vertically
+        camera.position = rl.vector3_rotate_by_axis_angle(camera.position, ud_axis, -0.05)
+
+    if(rl.is_key_down(rl.KeyboardKey.KEY_DOWN)):
+        # Rotate the camera counter-clockwise vertically
+        camera.position = rl.vector3_rotate_by_axis_angle(camera.position, ud_axis, 0.05)
 
     rl.begin_drawing()
-    rl.clear_background(rl.WHITE)
+    rl.clear_background(rl.RAYWHITE)
     rl.begin_mode_3d(camera)
-    rl.draw_cube_wires(rl.Vector3(10,10,10), 20, 20, 20, rl.BLACK)
+
+    # Draw a cube
+    rl.draw_cube(rl.Vector3(0,0,0), 20, 20, 20, rl.BLACK)
+    rl.draw_cube_wires(rl.Vector3(0,0,0), 20, 20, 20, rl.PURPLE)
 
     # Draw the 3D Axis [x,y,z]
     rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(1000, 0, 0), rl.RED)
     rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(0, 1000, 0), rl.BLUE)
-    rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(0, 0, 1000), rl.GREEN)
+    rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(0, 0, 1000), rl.GREEN)  
 
-    
+    # Draw the up/down vector as a line.
+    v = rl.Vector3(ud_axis.x*100, ud_axis.y, ud_axis.z*100)
+    rl.draw_line_3d(rl.vector3_negate(v), v, rl.GOLD)
 
     rl.end_mode_3d()
     rl.end_drawing()
