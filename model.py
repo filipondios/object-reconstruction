@@ -2,25 +2,50 @@ from view import View
 import pyray as rl
 import cv2
 import os
+import json
 
 class Model:
 
     """
-    Un modelo consta de un directorio nombrado con el formato 'model_nombre'.
-    El directorio estará compuesto de varios subdirectiorios, cada cual almacenando
-    una imagen del plano imagen de una vista y un archivo que informe en que punto
-    del espacio se tomó la vista.
+    A model is a directory named with the format 'model_name' that contains 
+    sub-directories named 'view..'. Each subdirectory must contain a file
+    'plane.bmp' (tha image projection plane) and a 'camera.json' file with
+    details about the camera position and angle.
     
-    El archivo del plano imagen se llamará 'plane.bmp' y el archivo donde se detalla
-    la posicion de la camara para dicha vista en 'camera'.
+    The requirements for the files plane.bmp are:
+        
+        - It must be a greyscale image, with only two colors: black and white (0/255)
+
+        - The pixel at the center of the image must be the intersection point of a 
+          perpendicular line to the projection plane that also passes at the origin 
+          of the space (0,0,0). The line is the camera vision line and the point is
+          the camera position.
+
+    The requirements for the files camera.json are:
+
+        - It must contain a object 'position', with three fields 'x', 'y', 'z', and
+          the objects 'vx', 'vy', 'vz' with the same fields as 'position'.
+        
+        - 'position' describes the coordinate in space of the camera/projection plane 
+          (same as the point described in the 'plane.bmp' file requirements).
+        
+        - 'vx', 'vy', 'vz' describe the 3 direction vectors of the projection plane.
+          All of them are perpendicular to each other. 'vy' must follow the direction
+          of the camera (up to the origin). 'vx' must be pointing to the right of the
+          projection and 'vz' up of the projection. All vectors are normalized.
+
+    If you dont understand how the direction of the vectors 'vx' and 'vz' work, just 
+    think that they are the axis of the 2D image/projection ('vx' being the horizontal
+    axis and 'vz' the vertical axis, 'vx' is positive to the right and vz 'up').
     """
 
+
     model_prefix = 'model_'
-    camera_file = 'camera'
+    camera_file = 'camera.json'
     image_view_file  = 'plane.bmp' 
 
     def __init__(self, model_name: str):
-        # Intentar obtener las vistas del modelo
+        # Intentar obtener las vistas del modelo.
         self.model_name = self.model_prefix + model_name
         self.views = []
 
@@ -28,14 +53,22 @@ class Model:
             view_path = os.path.join(self.model_name, view_dir)
 
             if os.path.isdir(view_path) and view_dir.startswith('view'):
-                # Intentar obtener la imagen de la vista
+                # Obtener la imagen de la vista.
                 img = cv2.imread(os.path.join(view_path, self.image_view_file), cv2.IMREAD_GRAYSCALE)
                 
-                # Intentar obtener la posicion de la camara
+                # Obtener detalles de la posicion de la camara.
                 with open(os.path.join(view_path, self.camera_file)) as file:
-                    content = file.read()
-                content = content.split('\n')
-                pos = rl.Vector3(int(content[0]), int(content[1]), int(content[2]))
+                    json_data = json.load(file)
 
-                # Guardar los datos de la vista actual
-                self.views.append(View(pos, img))
+                    data = json_data['position']
+                    pos = rl.Vector3(data['x'], data['y'], data['z'])
+                    
+                    data = json_data['vx']
+                    vx = rl.Vector3(data['x'], data['y'], data['z'])
+                    
+                    data = json_data['vy']
+                    vy = rl.Vector3(data['x'], data['y'], data['z'])
+                    
+                    data = json_data['vz']
+                    vz = rl.Vector3(data['x'], data['y'], data['z'])
+                    self.views.insert(0, View(img, pos, vx, vy, vz))
