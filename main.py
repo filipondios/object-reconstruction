@@ -1,4 +1,5 @@
 import pyray as rl
+from model import Model
 
 rl.init_window(1000, 700, "3D Reconstruction")
 rl.set_trace_log_level(rl.TraceLogLevel.LOG_ERROR)
@@ -11,6 +12,10 @@ camera.position   = rl.Vector3(40,40,40)
 camera.target     = rl.Vector3(0,0,0)
 camera.up         = rl.Vector3(0,1,0)
 camera.fovy       = 90
+
+model = Model('cube')
+#model.reconstruct()
+ 
 
 """ 
 Camera rotation axis. The center of the rotation is the origin (0,0,0).
@@ -52,9 +57,13 @@ while(not rl.window_should_close()):
     rl.clear_background(rl.RAYWHITE)
     rl.begin_mode_3d(camera)
 
-    # Draw a cube
-    rl.draw_cube(rl.Vector3(0,0,0), 20, 20, 20, rl.BLACK)
-    rl.draw_cube_wires(rl.Vector3(0,0,0), 20, 20, 20, rl.PURPLE)
+    # Draw the model
+    for view in model.views:
+        for vertex in view.vertices:
+            # Use the raylib 'Y' axis as the 'Z' axis and vice versa.
+            # We use 'Y' as depth, 'Z' as height and 'X' as width.
+            pos = rl.Vector3(vertex.x, vertex.z, vertex.y)
+            rl.draw_sphere(pos, 0.5, rl.BLACK)
 
     # Draw the 3D Axis [x,y,z]
     rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(1000, 0, 0), rl.RED)
@@ -64,7 +73,6 @@ while(not rl.window_should_close()):
     # Draw the up/down vector as a line.
     v = rl.Vector3(ud_axis.x*100, ud_axis.y, ud_axis.z*100)
     rl.draw_line_3d(rl.vector3_negate(v), v, rl.GOLD)
-
     rl.end_mode_3d()
     rl.end_drawing()
 

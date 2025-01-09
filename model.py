@@ -72,3 +72,46 @@ class Model:
                     data = json_data['vz']
                     vz = rl.Vector3(data['x'], data['y'], data['z'])
                     self.views.insert(0, View(img, pos, vx, vy, vz))
+
+
+    def reconstruct(self):
+        view0 = self.views[0]
+        view1 = self.views[1]
+        c = rl.vector3_cross_product(view0.vy, view1.vy)
+
+        if c.x == 0 and c.y == 0 and c.z == 0:
+          print("Both views have paralell vy vectors.")
+          return
+        
+        intersections = []
+
+        for c in view0.vertices:
+            e = view0.vy
+
+            for d in view1.vertices:
+              f = view1.vy
+
+              # Find intersection of two 3D lines
+              # https://math.stackexchange.com/questions/270767/find-intersection-of-two-3d-lines
+              
+              g = rl.Vector3(c.x - d.x, c.y - d.y, c.z - d.z)
+              fxg = rl.vector3_cross_product(f, g)
+              fxe = rl.vector3_cross_product(f, e)
+              h = rl.vector3_length(fxg)
+              k = rl.vector3_length(fxe)
+
+              if h == 0 or k == 0:
+                # Lines do not intersect
+                continue
+
+              l = rl.vector3_scale(e, h/k)
+              sign = rl.vector3_scale(rl.vector_3dot_product(fxg, fxe), 1/(h*k))
+
+              if sign == 1:
+                # f x g and f x e have the same direction
+                intersections.insert(0, rl.vector3_add(c, l))
+              else:
+                  l.x = -l.x
+                  l.y = -l.y
+                  l.z = -l.z
+                  intersections.insert(0, rl.vector3_add(c, l))

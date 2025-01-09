@@ -54,7 +54,3 @@ class View:
                     continue
                 if x + 1 <= cols and row[x + 1] == 255:
                     self.vertices.insert(0, transform2Dto3D(self.position, x_rel, z_rel, vx, vz))
-
-
-# https://stackoverflow.com/questions/71282527/get-vertices-in-a-image-using-python-computer-vision-etc-images-attached
-# https://docs.opencv.org/3.4/dd/d49/tutorial_py_contour_features.html
