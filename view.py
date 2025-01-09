@@ -6,6 +6,7 @@ import pyray as rl
 # the image in space.
 
 def transform2Dto3D(o, x, z, vx, vz):
+    # origin + x * vx + z * vz
     return rl.Vector3(
         (x * vx.x) + (z * vz.x) + o.x,
         (x * vx.y) + (z * vz.y) + o.y, 
@@ -36,18 +37,23 @@ class View:
 
         self.vertices = []
         (rows, cols) = self.image.shape
+
+        print(self.position.x, self.position.y, self.position.z)
     
         for z in range(rows):
             row = image[z]
+            z_rel = z - (rows >> 1)
 
             for x in range(cols):
+                x_rel = x - (cols >> 1)
+
                 if row[x] == 255:
                     continue
-                if x - 1 > 0 and row[x - 1] == 255:
-                    self.vertices.insert(0, transform2Dto3D(self.position, x, z, vx, vz))
+                if x - 1 >= 0 and row[x - 1] == 255:
+                    self.vertices.insert(0, transform2Dto3D(self.position, x_rel, z_rel, vx, vz))
                     continue
-                if x + 1 < cols and row[x + 1] == 255:
-                    self.vertices.insert(0, transform2Dto3D(self.position, x, z, vx, vz))
+                if x + 1 <= cols and row[x + 1] == 255:
+                    self.vertices.insert(0, transform2Dto3D(self.position, x_rel, z_rel, vx, vz))
 
 
 # https://stackoverflow.com/questions/71282527/get-vertices-in-a-image-using-python-computer-vision-etc-images-attached
