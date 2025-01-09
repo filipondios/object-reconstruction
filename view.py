@@ -37,8 +37,6 @@ class View:
 
         self.vertices = []
         (rows, cols) = self.image.shape
-
-        print(self.position.x, self.position.y, self.position.z)
     
         for z in range(rows):
             row = image[z]

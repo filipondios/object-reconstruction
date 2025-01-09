@@ -82,19 +82,18 @@ class Model:
         if c.x == 0 and c.y == 0 and c.z == 0:
           print("Both views have paralell vy vectors.")
           return
-        
+
         intersections = []
+        e = view0.vy
+        f = view1.vy
 
         for c in view0.vertices:
-            e = view0.vy
-
             for d in view1.vertices:
-              f = view1.vy
 
               # Find intersection of two 3D lines
               # https://math.stackexchange.com/questions/270767/find-intersection-of-two-3d-lines
               
-              g = rl.Vector3(c.x - d.x, c.y - d.y, c.z - d.z)
+              g = rl.Vector3(d.x - c.x, d.y - c.y, d.z - c.z)
               fxg = rl.vector3_cross_product(f, g)
               fxe = rl.vector3_cross_product(f, e)
               h = rl.vector3_length(fxg)
@@ -105,7 +104,7 @@ class Model:
                 continue
 
               l = rl.vector3_scale(e, h/k)
-              sign = rl.vector3_scale(rl.vector_3dot_product(fxg, fxe), 1/(h*k))
+              sign = rl.vector_3dot_product(fxg, fxe)/(h*k)
 
               if sign == 1:
                 # f x g and f x e have the same direction
@@ -115,3 +114,4 @@ class Model:
                   l.y = -l.y
                   l.z = -l.z
                   intersections.insert(0, rl.vector3_add(c, l))
+        return intersections

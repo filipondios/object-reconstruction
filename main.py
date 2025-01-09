@@ -14,9 +14,8 @@ camera.up         = rl.Vector3(0,1,0)
 camera.fovy       = 90
 
 model = Model('cube')
-#model.reconstruct()
+intersections = model.reconstruct()
  
-
 """ 
 Camera rotation axis. The center of the rotation is the origin (0,0,0).
 
@@ -64,6 +63,10 @@ while(not rl.window_should_close()):
             # We use 'Y' as depth, 'Z' as height and 'X' as width.
             pos = rl.Vector3(vertex.x, vertex.z, vertex.y)
             rl.draw_sphere(pos, 0.5, rl.BLACK)
+
+    for point in intersections:
+        #pos = rl.Vector3(point.x, point.z, point.y)
+        rl.draw_sphere(point, 0.5, rl.BLUE)
 
     # Draw the 3D Axis [x,y,z]
     rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(1000, 0, 0), rl.RED)
