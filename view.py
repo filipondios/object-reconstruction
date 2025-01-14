@@ -1,4 +1,5 @@
 import pyray as rl
+import numpy as np
 
 # Converts a (x,z) point inside a image (that is a projection plane)
 # to a 3D point in space. vx and vz are direction vectors of the image, 
@@ -37,18 +38,23 @@ class View:
 
         self.vertices = []
         (rows, cols) = self.image.shape
-    
-        for z in range(rows):
-            row = image[z]
-            z_rel = z - (rows >> 1)
 
-            for x in range(cols):
-                x_rel = x - (cols >> 1)
+        for row in range(1, rows - 1, 1):
+            z_rel = row - (rows >> 1)
 
-                if row[x] == 255:
+            for col in range(1, cols - 1, 1):
+                
+                if image[row][col] != 0:
                     continue
-                if x - 1 >= 0 and row[x - 1] == 255:
-                    self.vertices.insert(0, transform2Dto3D(self.position, x_rel, z_rel, vx, vz))
-                    continue
-                if x + 1 <= cols and row[x + 1] == 255:
+                x_rel = col - (cols >> 1)
+
+                # Given a 3x3 pixels neighbourhood centered at the pixel at (row,column)=(i,j),
+                # add the values at the center row and column to know how many black and white
+                # pixels are there in those pixels.
+                
+                rowv = np.int16(image[row][col]) + np.int16(image[row][col - 1]) + np.int16(image[row][col + 1])
+                colv = np.int16(image[row][col]) + np.int16(image[row - 1][col]) + np.int16(image[row + 1][col])
+
+                if not ((rowv == 0 and colv == 510) or (colv == 0 and rowv == 510)):
+                    # Corner detected (not a horizontal or vertical line).
                     self.vertices.insert(0, transform2Dto3D(self.position, x_rel, z_rel, vx, vz))

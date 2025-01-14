@@ -3,6 +3,7 @@ import pyray as rl
 import cv2
 import os
 import json
+import numpy as np
 
 class Model:
 
@@ -83,35 +84,32 @@ class Model:
           print("Both views have paralell vy vectors.")
           return
 
+        # Calculate the intersections of the lines with direction vectors d0 and d1
+        # (perpendicular to the image planes of views 0 and 1) and passing through
+        # points p0 and p1 contained in each of the image planes.
+
         intersections = []
-        e = view0.vy
-        f = view1.vy
+        d0 = np.array([view0.vy.x, view0.vy.y, view0.vy.z])
+        d1 = np.array([view1.vy.x, view1.vy.y, view1.vy.z])
 
-        for c in view0.vertices:
-            for d in view1.vertices:
+        for p0 in view0.vertices:
+            p0 = np.array([p0.x, p0.y, p0.z])
 
-              # Find intersection of two 3D lines
-              # https://math.stackexchange.com/questions/270767/find-intersection-of-two-3d-lines
-              
-              g = rl.Vector3(d.x - c.x, d.y - c.y, d.z - c.z)
-              fxg = rl.vector3_cross_product(f, g)
-              fxe = rl.vector3_cross_product(f, e)
-              h = rl.vector3_length(fxg)
-              k = rl.vector3_length(fxe)
+            for p1 in view1.vertices:
+              p1 = np.array([p1.x, p1.y, p1.z])                
+              A = np.array([d0, -d1]).T
+              b = p1 - p0
 
-              if h == 0 or k == 0:
-                # Lines do not intersect
-                continue
+              try:
+                # Try to solve the both lines linear equation
+                (t, s), _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+                p_inter1 = p0 + t * d0
+                p_inter2 = p1 + s * d1
 
-              l = rl.vector3_scale(e, h/k)
-              sign = rl.vector_3dot_product(fxg, fxe)/(h*k)
-
-              if sign == 1:
-                # f x g and f x e have the same direction
-                intersections.insert(0, rl.vector3_add(c, l))
-              else:
-                  l.x = -l.x
-                  l.y = -l.y
-                  l.z = -l.z
-                  intersections.insert(0, rl.vector3_add(c, l))
+                if np.allclose(p_inter1, p_inter2):
+                  intersections.insert(0, rl.Vector3(p_inter1[0], p_inter1[1], p_inter1[2]))
+                else:
+                  continue
+              except np.linalg.LinAlgError:
+                 continue
         return intersections
