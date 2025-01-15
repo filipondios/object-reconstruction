@@ -39,13 +39,13 @@ class View:
         (rows, cols) = image.shape
 
         for row in range(1, rows - 1, 1):
-            z_rel = row - (rows >> 1)
+            z_rel = (rows >> 1) - row
 
             for col in range(1, cols - 1, 1):
                 
                 if image[row][col] != 0:
                     continue
-                x_rel = col - (cols >> 1)
+                x_rel = (cols >> 1) - col
 
                 # Given a 3x3 pixels neighbourhood centered at the pixel at (row,column)=(i,j),
                 # add the values at the center row and column to know how many black and white
