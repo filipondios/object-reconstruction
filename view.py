@@ -2,7 +2,7 @@ import pyray as rl
 import numpy as np
 
 # Converts a (x,z) point inside a image (that is a projection plane)
-# to a 3D point in space. vx and vz are direction vectors of the image, 
+# to a 3D point in space. vx and vz are direction vectors of the image,
 # paralell to the plane and 'o' is the 3D coordinate of the center of
 # the image in space.
 
@@ -34,10 +34,9 @@ class View:
         self.vx = vx
         self.vy = vy
         self.vz = vz
-        self.image = image
 
         self.vertices = []
-        (rows, cols) = self.image.shape
+        (rows, cols) = image.shape
 
         for row in range(1, rows - 1, 1):
             z_rel = row - (rows >> 1)

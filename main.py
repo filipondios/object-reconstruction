@@ -13,7 +13,7 @@ camera.target     = rl.Vector3(0,0,0)
 camera.up         = rl.Vector3(0,1,0)
 camera.fovy       = 90
 
-model = Model('cube')
+model = Model('stairs')
 intersections = model.reconstruct()
 
 """ 
