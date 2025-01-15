@@ -94,15 +94,15 @@ class Model:
 
         for p0 in view0.vertices:
             p0 = np.array([p0.x, p0.y, p0.z])
-
+            
             for p1 in view1.vertices:
               p1 = np.array([p1.x, p1.y, p1.z])                
-              A = np.array([d0, -d1]).T
+              a = np.array([d0, -d1]).T
               b = p1 - p0
-
+              
               try:
                 # Try to solve the both lines linear equation
-                (t, s), _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+                (t, s), _, _, _ = np.linalg.lstsq(a, b, rcond=None)
                 p_inter1 = p0 + t * d0
                 p_inter2 = p1 + s * d1
 

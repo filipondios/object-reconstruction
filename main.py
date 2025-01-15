@@ -65,13 +65,14 @@ while(not rl.window_should_close()):
             rl.draw_sphere(pos, 0.5, rl.BLACK)
 
     for point in intersections:
-        #pos = rl.Vector3(point.x, point.z, point.y)
-        rl.draw_sphere(point, 0.5, rl.BLUE)
+        # Adapt coordinates to raylib's
+        pos = rl.Vector3(point.x, point.z, point.y)
+        rl.draw_sphere(pos, 0.5, rl.BLUE)
 
     # Draw the 3D Axis [x,y,z]
-    rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(1000, 0, 0), rl.RED)
-    rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(0, 1000, 0), rl.BLUE)
-    rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(0, 0, 1000), rl.GREEN)  
+    #rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(1000, 0, 0), rl.RED)
+    #rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(0, 1000, 0), rl.BLUE)
+    #rl.draw_line_3d(rl.Vector3(0, 0, 0), rl.Vector3(0, 0, 1000), rl.GREEN)  
 
     # Draw the up/down vector as a line.
     #v = rl.Vector3(ud_axis.x*100, ud_axis.y, ud_axis.z*100)
