@@ -3,10 +3,9 @@ from model import Model
 
 
 def draw_axes():
-    color = rl.Color(0,0,0,50)
-    rl.draw_line_3d(rl.Vector3(-500,0,0), rl.Vector3(500,0,0), color)
-    rl.draw_line_3d(rl.Vector3(0,-500,0), rl.Vector3(0,500,0), color)
-    rl.draw_line_3d(rl.Vector3(0,0,-500), rl.Vector3(0,0,500), color)
+    rl.draw_line_3d(rl.Vector3(0,0,0), rl.Vector3(500,0,0), rl.RED)
+    rl.draw_line_3d(rl.Vector3(0,0,0), rl.Vector3(0,500,0), rl.GREEN)
+    rl.draw_line_3d(rl.Vector3(0,0,0), rl.Vector3(0,0,500), rl.BLUE)
 
 
 def move_camera(camera, ud_axis, lr_axis):
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     while(not rl.window_should_close()):
         move_camera(camera, ud_axis, lr_axis)
         rl.begin_drawing()
-        rl.clear_background(rl.RAYWHITE)
+        rl.clear_background(rl.WHITE)
         rl.begin_mode_3d(camera)
 
         # Draw the model

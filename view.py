@@ -45,7 +45,7 @@ class View:
                 
                 if image[row][col] != 0:
                     continue
-                x_rel = (cols >> 1) - col
+                x_rel = col - (cols >> 1)
 
                 # Given a 3x3 pixels neighbourhood centered at the pixel at (row,column)=(i,j),
                 # add the values at the center row and column to know how many black and white
