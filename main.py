@@ -34,7 +34,6 @@ def move_camera(camera, ud_axis, lr_axis):
         camera.position = rl.vector3_rotate_by_axis_angle(camera.position, ud_axis, 0.05)
 
 
-
 if __name__ == "__main__":
     rl.init_window(1500, 1500, "3D Reconstruction")
     rl.set_trace_log_level(rl.TraceLogLevel.LOG_ERROR)
