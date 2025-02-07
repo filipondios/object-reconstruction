@@ -25,8 +25,9 @@ def calculate_plane_d(x,y,z, vx,vy,vz):
 
 # Calculates the intersection point between a plane Ax + By + Cz + D = 0
 # and a line that contains a point (x,y,z) and has the direction vector
-# (vx, vy, vz).
+# (vx, vy, vz) = (A,B,C). As you can see, the plane and the line will be 
+# perpendicular to each other.
 
-def intersect_plane_line(A,B,C,D, x,y,z, vx,vy,vz):
-    t = (A*x + B*y + C*z + D)/(A*vx + B*vy + C*vz)
-    return rl.Vector3(x + t * vx, y + t * vy,  z + t * vz)
+def intersect_plane_line(A,B,C,D, x,y,z):
+    t = -(A*x + B*y + C*z + D)/(A*(A) + B*(B) + C*(C))
+    return rl.Vector3(x + t * (A), y + t * (B),  z + t * (C))

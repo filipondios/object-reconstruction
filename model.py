@@ -4,6 +4,7 @@ import cv2
 import os
 import json
 import numpy as np
+import utils
 
 class Model:
 
@@ -120,8 +121,34 @@ class Model:
       if self.next_view >= len(self.views):
         return False
       
-      # Eliminar puntos que no hay en la imagen
+      # Pick a point from the view plane and calculate the 'D' parameter
+      # from the plane expresion Ax + By + Cz + D = 0. The A,B,C 
+      # parameters are defined by the Vy direction vector of the view
+      # (which is perpendicular to the view plane).
+       
+      view = self.views[self.next_view]
+      plane_point = view.vertices[0]
+      plane_d = utils.calculate_plane_d(plane_point.x, plane_point.y, plane_point.z,
+                                        view.vy.x, view.vy.y, view.vy.z)
+      points_to_remove = []
+
+      for point in self.intersections:
+        plane_intersec = utils.intersect_plane_line(view.vy.x, view.vy.y, view.vy.z, plane_d,
+                                                    point.x, point.y, point.z)
+        found_point = False
+        print(plane_intersec.x, plane_intersec.y, plane_intersec.z)
+
+        for view_point in view.vertices:
+          print(view_point.x, view_point.y, view_point.z)
+
+          if plane_intersec.x == view_point.x and plane_intersec.y == view_point.y and plane_intersec.z == view_point.z:
+            found_point = True
+        if not found_point:
+          points_to_remove.insert(0, point)  
+        print()
       
+      for point in points_to_remove:
+          self.intersections.remove(point)
 
       self.next_view += 1
       return True
