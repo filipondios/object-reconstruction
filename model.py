@@ -41,7 +41,7 @@ class Model:
     """
 
 
-    model_prefix = 'model_'
+    model_prefix = 'models/model_'
     camera_file = 'camera.json'
     image_view_file  = 'plane.bmp' 
 
@@ -49,6 +49,8 @@ class Model:
         # Intentar obtener las vistas del modelo.
         self.model_name = self.model_prefix + model_name
         self.views = []
+        self.intersections = []
+        self.next_view = 0
 
         for view_dir in os.listdir(self.model_name):
             view_path = os.path.join(self.model_name, view_dir)
@@ -75,7 +77,7 @@ class Model:
                     self.views.insert(0, View(img, pos, vx, vy, vz))
 
 
-    def reconstruct(self):
+    def initial_reconstruction(self):
         view0 = self.views[0]
         view1 = self.views[1]
         c = rl.vector3_cross_product(view0.vy, view1.vy)
@@ -83,12 +85,12 @@ class Model:
         if c.x == 0 and c.y == 0 and c.z == 0:
           print("Both views have paralell vy vectors.")
           return
+        self.next_view = 2
 
         # Calculate the intersections of the lines with direction vectors d0 and d1
         # (perpendicular to the image planes of views 0 and 1) and passing through
         # points p0 and p1 contained in each of the image planes.
 
-        intersections = []
         d0 = np.array([view0.vy.x, view0.vy.y, view0.vy.z])
         d1 = np.array([view1.vy.x, view1.vy.y, view1.vy.z])
 
@@ -107,9 +109,19 @@ class Model:
                 p_inter2 = p1 + s * d1
 
                 if np.allclose(p_inter1, p_inter2):
-                  intersections.insert(0, rl.Vector3(p_inter1[0], p_inter1[1], p_inter1[2]))
+                  self.intersections.insert(0, rl.Vector3(p_inter1[0], p_inter1[1], p_inter1[2]))
                 else:
                   continue
               except np.linalg.LinAlgError:
                  continue
-        return intersections
+    
+
+    def next_refinement_step(self):
+      if self.next_view >= len(self.views):
+        return False
+      
+      # Eliminar puntos que no hay en la imagen
+      
+
+      self.next_view += 1
+      return True

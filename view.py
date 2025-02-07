@@ -1,19 +1,6 @@
 import pyray as rl
 import numpy as np
-
-# Converts a (x,z) point inside a image (that is a projection plane)
-# to a 3D point in space. vx and vz are direction vectors of the image,
-# paralell to the plane and 'o' is the 3D coordinate of the center of
-# the image in space.
-
-def transform2Dto3D(o, x, z, vx, vz):
-    # origin + x * vx + z * vz
-    return rl.Vector3(
-        (x * vx.x) + (z * vz.x) + o.x,
-        (x * vx.y) + (z * vz.y) + o.y, 
-        (x * vx.z) + (z * vz.z) + o.z
-    )
-
+import utils
 
 class View:
 
@@ -56,4 +43,4 @@ class View:
 
                 if not ((rowv == 0 and colv == 510) or (colv == 0 and rowv == 510)):
                     # Corner detected (not a horizontal or vertical line).
-                    self.vertices.insert(0, transform2Dto3D(self.position, x_rel, z_rel, vx, vz))
+                    self.vertices.insert(0, utils.transform_2D_3D(self.position, x_rel, z_rel, vx, vz))

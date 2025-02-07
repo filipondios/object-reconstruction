@@ -51,9 +51,11 @@ if __name__ == "__main__":
     lr_axis = rl.Vector3(0,1,0)
 
     # Load model
-    model = Model('stairs')
-    intersections = model.reconstruct()
+    model = Model('cross')
+    model.initial_reconstruction()
 
+    while model.next_refinement_step():
+        continue
 
     while(not rl.window_should_close()):
         move_camera(camera, ud_axis, lr_axis)
@@ -69,7 +71,7 @@ if __name__ == "__main__":
                 pos = rl.Vector3(vertex.x, vertex.z, vertex.y)
                 rl.draw_sphere(pos, 0.5, rl.BLACK)
 
-        for point in intersections:
+        for point in model.intersections:
             # Adapt coordinates to raylib's
             pos = rl.Vector3(point.x, point.z, point.y)
             rl.draw_sphere(pos, 0.5, rl.BLUE)
