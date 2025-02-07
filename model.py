@@ -136,16 +136,12 @@ class Model:
         plane_intersec = utils.intersect_plane_line(view.vy.x, view.vy.y, view.vy.z, plane_d,
                                                     point.x, point.y, point.z)
         found_point = False
-        print(plane_intersec.x, plane_intersec.y, plane_intersec.z)
 
         for view_point in view.vertices:
-          print(view_point.x, view_point.y, view_point.z)
-
           if plane_intersec.x == view_point.x and plane_intersec.y == view_point.y and plane_intersec.z == view_point.z:
             found_point = True
         if not found_point:
           points_to_remove.insert(0, point)  
-        print()
       
       for point in points_to_remove:
           self.intersections.remove(point)
