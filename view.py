@@ -38,8 +38,8 @@ class View:
                 # add the values at the center row and column to know how many black and white
                 # pixels are there in those pixels.
                 
-                rowv = np.int16(image[row][col]) + np.int16(image[row][col - 1]) + np.int16(image[row][col + 1])
-                colv = np.int16(image[row][col]) + np.int16(image[row - 1][col]) + np.int16(image[row + 1][col])
+                rowv = np.int16(image[row][col - 1]) + np.int16(image[row][col + 1])
+                colv = np.int16(image[row - 1][col]) + np.int16(image[row + 1][col])
 
                 if not ((rowv == 0 and colv == 510) or (colv == 0 and rowv == 510)):
                     # Corner detected (not a horizontal or vertical line).
