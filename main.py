@@ -71,7 +71,7 @@ if __name__ == "__main__":
                 pos = rl.Vector3(vertex.x, vertex.z, vertex.y)
                 rl.draw_sphere(pos, 0.5, rl.BLACK)
 
-        for point in model.intersections:
+        for point in model.vertices:
             # Adapt coordinates to raylib's
             pos = rl.Vector3(point.x, point.z, point.y)
             rl.draw_sphere(pos, 0.5, rl.BLUE)

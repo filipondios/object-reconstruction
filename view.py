@@ -1,4 +1,3 @@
-import pyray as rl
 import numpy as np
 import utils
 

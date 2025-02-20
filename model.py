@@ -47,14 +47,13 @@ class Model:
     image_view_file  = 'plane.bmp' 
 
     def __init__(self, model_name: str):
-        # Intentar obtener las vistas del modelo.
-        self.model_name = self.model_prefix + model_name
+        model_name = self.model_prefix + model_name
         self.views = []
-        self.intersections = []
+        self.vertices = []
         self.next_view = 0
 
-        for view_dir in os.listdir(self.model_name):
-            view_path = os.path.join(self.model_name, view_dir)
+        for view_dir in os.listdir(model_name):
+            view_path = os.path.join(model_name, view_dir)
 
             if os.path.isdir(view_path) and view_dir.startswith('view'):
                 # Obtener la imagen de la vista.
@@ -110,7 +109,7 @@ class Model:
                 p_inter2 = p1 + s * d1
 
                 if np.allclose(p_inter1, p_inter2):
-                  self.intersections.insert(0, rl.Vector3(p_inter1[0], p_inter1[1], p_inter1[2]))
+                  self.vertices.insert(0, rl.Vector3(p_inter1[0], p_inter1[1], p_inter1[2]))
                 else:
                   continue
               except np.linalg.LinAlgError:
@@ -139,7 +138,7 @@ class Model:
         view.vy.z
       )
       
-      for (i, point) in enumerate(self.intersections):
+      for point in self.vertices:
         plane_intersec = utils.intersect_plane_line(
           view.vy.x,
           view.vy.y,
@@ -150,13 +149,13 @@ class Model:
           point.z
         )
         
-        for view_point in view.vertices:
-          if not rl.vector3_equals(plane_intersec, view_point):
-            points_to_remove.insert(0, i)
+        # Remove the current model point if its not contained in the current view plane
+        # (Its not visible in the current view).
+        if not any(rl.vector3_equals(plane_intersec, view_point) for view_point in view.vertices):
+            points_to_remove.insert(0, point)
       
       for point in points_to_remove:
-        #del self.intersections[point]
-        #self.intersections.remove(point)
+        self.vertices.remove(point)
 
       self.next_view += 1
       return True
