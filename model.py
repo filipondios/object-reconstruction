@@ -128,23 +128,35 @@ class Model:
        
       view = self.views[self.next_view]
       plane_point = view.vertices[0]
-      plane_d = utils.calculate_plane_d(plane_point.x, plane_point.y, plane_point.z,
-                                        view.vy.x, view.vy.y, view.vy.z)
       points_to_remove = []
 
-      for point in self.intersections:
-        plane_intersec = utils.intersect_plane_line(view.vy.x, view.vy.y, view.vy.z, plane_d,
-                                                    point.x, point.y, point.z)
-        found_point = False
-
+      plane_d = utils.calculate_plane_d(
+        plane_point.x, 
+        plane_point.y,
+        plane_point.z,
+        view.vy.x,
+        view.vy.y,
+        view.vy.z
+      )
+      
+      for (i, point) in enumerate(self.intersections):
+        plane_intersec = utils.intersect_plane_line(
+          view.vy.x,
+          view.vy.y,
+          view.vy.z,
+          plane_d,
+          point.x,
+          point.y, 
+          point.z
+        )
+        
         for view_point in view.vertices:
-          if plane_intersec.x == view_point.x and plane_intersec.y == view_point.y and plane_intersec.z == view_point.z:
-            found_point = True
-        if not found_point:
-          points_to_remove.insert(0, point)  
+          if not rl.vector3_equals(plane_intersec, view_point):
+            points_to_remove.insert(0, i)
       
       for point in points_to_remove:
-          self.intersections.remove(point)
+        #del self.intersections[point]
+        #self.intersections.remove(point)
 
       self.next_view += 1
       return True
