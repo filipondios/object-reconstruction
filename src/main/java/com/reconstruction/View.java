@@ -14,7 +14,8 @@ public class View {
     Vector3 vy;
     Vector3 vz;
 
-    public View(BufferedImage image, Vector3 position, Vector3 vx, Vector3 vy, Vector3 vz) {
+    public View(String name, BufferedImage image, Vector3 position, Vector3 vx, Vector3 vy, Vector3 vz) {
+        this.name = name;
         this.position = position;
         this.vx = vx;
         this.vy = vy;
@@ -69,7 +70,7 @@ public class View {
         String vy = this.vy.x() + ", " + this.vy.y() + ", " + this.vy.z();
         String vz = this.vz.x() + ", " + this.vz.y() + ", " + this.vz.z();
 
-        return "<-- " + this.name + " -->\n" + 
+        return "[" + this.name + "]\n" + 
             "Position: (" + position + ")\n" + 
             "Vx: (" + vx + ")\n" +
             "Vx: (" + vy + ")\n" +
