@@ -1,3 +1,0 @@
-raylib
-opencv-python
-numpy
