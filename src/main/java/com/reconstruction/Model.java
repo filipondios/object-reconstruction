@@ -19,18 +19,17 @@ import org.apache.commons.math3.geometry.euclidean.threed.Line;
 public class Model {
     
     // Constants about Models data storage
-    private static final String MODEL_DIR   = "models/model_";
+    private static final String MODEL_DIR   = "models/";
     private static final String PLANE_FILE  = "/plane.bmp";
     private static final String CAMERA_FILE = "/camera.yml";
 
     private ArrayList<View> views;
     private ArrayList<Vector3D> vertices;
     private String name;
-    
+
     // Class unique instance
     private static Model model;
-    private static int nextView;
-   
+
     private Model(String name) throws IOException {
         this.views = new ArrayList<>();
         this.vertices = new ArrayList<>();
@@ -41,7 +40,7 @@ public class Model {
             .filter(Files::isDirectory)
             .collect(Collectors.toSet());
 
-        for (Path view_path : views) {          
+        for (final Path view_path : views) {          
             // Load the camera position and orientation vectors
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             final View view = mapper.readValue(new File(view_path + CAMERA_FILE), View.class);
@@ -52,7 +51,7 @@ public class Model {
             this.views.add(view);
         }
     }
-    
+
     public static Model loadModel(String name) throws IOException {
         if (model == null) { model = new Model(name); } 
         return model;
@@ -61,10 +60,9 @@ public class Model {
     public void initialReconstruction() {
         final View view1 = this.views.get(0);
         final View view2 = this.views.get(1);
-        nextView = 2; /* Views 0 and 1 are now used */
 
-        for (Vector3D p1 : view1.getVertices()) {
-            for (Vector3D p2 : view2.getVertices()) {
+        for (final Vector3D p1 : view1.getVertices()) {
+            for (final Vector3D p2 : view2.getVertices()) {
                 // Check if the line which has direction 'view0.vy' and passes
                 // through 'p1' intersects with the line which has direction 
                 // 'view1.vy' and passes through 'p2'.
@@ -77,6 +75,14 @@ public class Model {
                     this.vertices.add(intersection);
                 }
             }
+        }
+    }
+
+    public void refineModel() {
+        for (int i = 2; i < this.views.size(); ++i) {
+            View current = this.views.get(i);
+
+            
         }
     }
 
