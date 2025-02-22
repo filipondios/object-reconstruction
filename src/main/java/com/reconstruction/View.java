@@ -1,30 +1,29 @@
 package com.reconstruction;
 
-import com.raylib.Raylib.Vector3;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.other.Vector3DYaml;
 import java.util.ArrayList;
 import java.awt.image.BufferedImage;
 
-@SuppressWarnings("resource")
 public class View {
 
-    private String name;
-    public ArrayList<Vector3> vertices;
-    private Vector3 position;
-    public Vector3 vx;
-    public Vector3 vy;
-    public Vector3 vz;
+    public String name;
+    @JsonDeserialize(using = Vector3DYaml.class)
+    private Vector3D position;
+    @JsonDeserialize(using = Vector3DYaml.class)
+    private Vector3D vx;
+    @JsonDeserialize(using = Vector3DYaml.class)
+    private Vector3D vy;
+    @JsonDeserialize(using = Vector3DYaml.class)
+    private Vector3D vz;
 
-    public View(String name, BufferedImage image, Vector3 position, Vector3 vx, Vector3 vy, Vector3 vz) {
-        this.name = name;
-        this.position = position;
-        this.vx = vx;
-        this.vy = vy;
-        this.vz = vz;
-        this.vertices = new ArrayList<>();
-        extractVerticesFromImage(image);
-    }
+    @JsonIgnore
+    private ArrayList<Vector3D> vertices;
+    public View() { this.vertices = new ArrayList<>(); }
 
-    private void extractVerticesFromImage(BufferedImage image) {
+    public void extractVerticesFromImage(BufferedImage image) {
         final int rows = image.getHeight();
         final int cols  = image.getWidth();
         final int half_rows = rows >> 1;
@@ -56,25 +55,34 @@ public class View {
         }
     }
 
-    private Vector3 point3DFromImage(int x, int z) {
-        return new Vector3()
-            .x((x * this.vx.x()) + (z * this.vz.x()) + this.position.x())
-            .y((x * this.vx.y()) + (z * this.vz.y()) + this.position.y())
-            .z((x * this.vx.z()) + (z * this.vz.z()) + this.position.z());
+    private Vector3D point3DFromImage(int x, int z) {
+        return new Vector3D(
+            (x * this.vx.getX()) + (z * this.vz.getX()) + this.position.getX(),
+            (x * this.vx.getY()) + (z * this.vz.getY()) + this.position.getY(),
+            (x * this.vx.getZ()) + (z * this.vz.getZ()) + this.position.getZ()
+        );
     }
+
+    public void setName(String name) { this.name = name; }
+    public void setPosition(Vector3D position) { this.position = position; }
+    public void setVx(Vector3D vx) { this.vx = vx; }
+    public void setVy(Vector3D vy) { this.vy = vy; }
+    public void setVz(Vector3D vz) { this.vz = vz; }
+
+    public String getName() { return this.name; }
+    public Vector3D getPosition() { return this.position; }
+    public Vector3D getVx() { return this.vx; }
+    public Vector3D getVy() { return this.vy; }
+    public Vector3D getVz() { return this.vz; }
+    public ArrayList<Vector3D> getVertices() { return this.vertices; }
 
     @Override
     public String toString() {
-        String position = this.position.x() + ", " + this.position.y() + ", " + this.position.z();
-        String vx = this.vx.x() + ", " + this.vx.y() + ", " + this.vx.z();
-        String vy = this.vy.x() + ", " + this.vy.y() + ", " + this.vy.z();
-        String vz = this.vz.x() + ", " + this.vz.y() + ", " + this.vz.z();
-
         return "[View: " + this.name + "]\n" + 
-            "Position: [" + position + "]\n" + 
-            "Vx: [" + vx + "]\n" +
-            "Vx: [" + vy + "]\n" +
-            "Vx: [" + vz + "]\n" + 
-            "Vertices: " + vertices.size() + "\n";
+            "Position: " + this.position + "\n" + 
+            "Vx: " + this.vx + "\n" +
+            "Vx: " + this.vy + "\n" +
+            "Vx: " + this.vz + "\n" + 
+            "Vertices: " + this.vertices.size() + "\n";
     }
 }

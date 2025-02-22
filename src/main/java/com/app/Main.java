@@ -1,6 +1,5 @@
 package com.app;
 
-import java.awt.Color;
 import java.io.IOException;
 import com.raylib.Colors;
 import com.raylib.Raylib;
@@ -8,6 +7,7 @@ import com.raylib.Raylib.Camera3D;
 import com.raylib.Raylib.Vector3;
 import com.reconstruction.Model;
 import com.reconstruction.View;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 
 public class Main {
@@ -18,6 +18,7 @@ public class Main {
         final String model_name = "cross";
 
         Model model = Model.loadModel(model_name);
+        model.initialReconstruction();
         System.out.println(model);
 
         // Proceed with the data visualization
@@ -27,7 +28,7 @@ public class Main {
 
         Camera3D camera = new Camera3D()
             ._position(new Vector3().x(40).y(40).z(40))
-            .target(new Vector3())
+            .target(Raylib.Vector3Zero())
             .projection(Raylib.CAMERA_ORTHOGRAPHIC)
             .up(new Vector3().y(1))
             .fovy(90);
@@ -38,20 +39,28 @@ public class Main {
             Raylib.BeginMode3D(camera);
 
             // Draw space X,Y,Z axes in the range [0, 200]
-            Raylib.DrawLine3D(new Vector3(), new Vector3().x(200), Colors.BLACK);
-            Raylib.DrawLine3D(new Vector3(), new Vector3().y(200), Colors.BLACK);
-            Raylib.DrawLine3D(new Vector3(), new Vector3().z(200), Colors.BLACK);
+            Raylib.DrawLine3D(Raylib.Vector3Zero(), new Vector3().x(200), Colors.BLACK);
+            Raylib.DrawLine3D(Raylib.Vector3Zero(), new Vector3().y(200), Colors.BLACK);
+            Raylib.DrawLine3D(Raylib.Vector3Zero(), new Vector3().z(200), Colors.BLACK);
 
             // Draw each detected vertex in each view
             for (View view : model.getViews()) {
-                for (Vector3 vertex : view.vertices) {
-                    Raylib.DrawSphere(vertex, 0.5f, Colors.BLACK);
+                for (Vector3D vec : view.getVertices()) {
+                    Vector3 raylib_translate = new Vector3()
+                        .x((float) vec.getX())
+                        .y((float) vec.getY())
+                        .z((float) vec.getZ());
+                    Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLUE);
                 }
             }
 
-            // Draw the model reconstructed vertices.
-            for (Vector3 vertex : model.getVertices()) {
-                Raylib.DrawSphere(vertex, 1, Colors.BLACK);
+            // Draw the reconstructed model vertices
+            for (Vector3D vec : model.getVertices()) {
+                Vector3 raylib_translate = new Vector3()
+                    .x((float) vec.getX())
+                    .y((float) vec.getY())
+                    .z((float) vec.getZ());
+                Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLACK);
             }
 
             Raylib.EndMode3D();
