@@ -80,7 +80,6 @@ public class Model {
                 position,
                 vx, vy, vz
             ));
-            System.out.println(this.views.get(this.views.size()-1));
         }   
     }
     
@@ -95,5 +94,12 @@ public class Model {
     
     public ArrayList<Vector3> getVertices() { 
         return this.vertices;
+    }
+
+    @Override
+    public String toString() {
+        String out = "[Model '" + this.name + "']\n";
+        for (View view : this.views) { out += view + "\n"; }
+        return out;
     }
 }

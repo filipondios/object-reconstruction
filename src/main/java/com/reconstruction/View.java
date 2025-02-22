@@ -7,12 +7,12 @@ import java.awt.image.BufferedImage;
 @SuppressWarnings("resource")
 public class View {
 
-    String name;
-    ArrayList<Vector3> vertices;
-    Vector3 position;
-    Vector3 vx;
-    Vector3 vy;
-    Vector3 vz;
+    private String name;
+    public ArrayList<Vector3> vertices;
+    private Vector3 position;
+    public Vector3 vx;
+    public Vector3 vy;
+    public Vector3 vz;
 
     public View(String name, BufferedImage image, Vector3 position, Vector3 vx, Vector3 vy, Vector3 vz) {
         this.name = name;
@@ -70,11 +70,11 @@ public class View {
         String vy = this.vy.x() + ", " + this.vy.y() + ", " + this.vy.z();
         String vz = this.vz.x() + ", " + this.vz.y() + ", " + this.vz.z();
 
-        return "[" + this.name + "]\n" + 
-            "Position: (" + position + ")\n" + 
-            "Vx: (" + vx + ")\n" +
-            "Vx: (" + vy + ")\n" +
-            "Vx: (" + vz + ")\n" + 
+        return "[View: " + this.name + "]\n" + 
+            "Position: [" + position + "]\n" + 
+            "Vx: [" + vx + "]\n" +
+            "Vx: [" + vy + "]\n" +
+            "Vx: [" + vz + "]\n" + 
             "Vertices: " + vertices.size() + "\n";
     }
 }
