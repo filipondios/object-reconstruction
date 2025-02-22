@@ -11,15 +11,23 @@
     </properties>
 
     <dependencies>
-        <dependency><!-- YAML Parsing -->
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>2.4</version>
-        </dependency>
-        <dependency> <!-- Graphics library (Raylib) -->
+        <!-- Graphics library -->
+        <dependency>
             <groupId>uk.co.electronstudio.jaylib</groupId>
             <artifactId>jaylib</artifactId>
             <version>[5.5.0,5.6)</version>
         </dependency>
-    </dependencies>
+        <!-- Math (linear eq. systems) -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6.1</version>
+        </dependency>
+        <!-- YAML deserializing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>2.14.2</version>
+            </dependency>
+        </dependencies>
 </project>
