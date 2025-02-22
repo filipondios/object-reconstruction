@@ -81,8 +81,8 @@ public class View {
         return "[View: " + this.name + "]\n" + 
             "Position: " + this.position + "\n" + 
             "Vx: " + this.vx + "\n" +
-            "Vx: " + this.vy + "\n" +
-            "Vx: " + this.vz + "\n" + 
+            "Vy: " + this.vy + "\n" +
+            "Vz: " + this.vz + "\n" + 
             "Vertices: " + this.vertices.size() + "\n";
     }
 }
