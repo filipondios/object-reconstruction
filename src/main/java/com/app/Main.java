@@ -34,6 +34,18 @@ public class Main {
             .fovy(90);
 
         while (!Raylib.WindowShouldClose()) {
+            
+            if (Raylib.IsKeyDown(Raylib.KEY_RIGHT)) {
+                // Rotate the camera around the 'Y' axis counter-clockwise.
+                camera._position(Raylib.Vector3RotateByAxisAngle(camera._position(),
+                    new Vector3().y(1), 0.05f));
+            
+            } else if (Raylib.IsKeyDown(Raylib.KEY_LEFT)) {
+                // Rotate the camera around the 'Y' axis clockwise.
+                camera._position(Raylib.Vector3RotateByAxisAngle(camera._position(),
+                    new Vector3().y(1), -0.05f));
+            }
+
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Colors.WHITE);
             Raylib.BeginMode3D(camera);
