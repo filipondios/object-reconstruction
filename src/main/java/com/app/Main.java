@@ -1,6 +1,8 @@
 package com.app;
 
 import java.io.IOException;
+import java.util.ArrayList;
+
 import com.raylib.Colors;
 import com.raylib.Raylib;
 import com.raylib.Raylib.Camera3D;
@@ -19,8 +21,10 @@ public class Main {
 
         Model model = Model.loadModel(model_name);
         model.initialReconstruction();
+        model.refineModel();
         System.out.println(model);
 
+        
         // Proceed with the data visualization
         Raylib.SetTraceLogLevel(Raylib.LOG_ERROR);
         Raylib.InitWindow(1000, 1000, model_name);

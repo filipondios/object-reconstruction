@@ -9,11 +9,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.threed.Line;
+import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 
 
 public class Model {
@@ -80,9 +82,23 @@ public class Model {
 
     public void refineModel() {
         for (int i = 2; i < this.views.size(); ++i) {
-            View current = this.views.get(i);
+            // Given a new view, back project all the current model vertices
+            // into the view image plane and eliminate those model vertices 
+            // which its back projection is not found in the image plane.
+            final View current = this.views.get(i);
+            final Plane view_plane = new Plane(current.getVertices().get(0),
+                current.getVy(), 0.001);
 
-            
+            Iterator<Vector3D> iterator = this.vertices.iterator();
+            while (iterator.hasNext()) {
+                Vector3D vertex = iterator.next();
+                final Line line = new Line(vertex, vertex.add(current.getVy()), 0.0001);
+                final Vector3D intersection = view_plane.intersection(line);
+                
+                if(!current.getVertices().contains(intersection)) {
+                    iterator.remove();
+                }
+            }
         }
     }
 
