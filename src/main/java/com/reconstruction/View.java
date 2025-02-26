@@ -23,32 +23,29 @@ public class View {
     private ArrayList<Vector3D> vertices;
     public View() { this.vertices = new ArrayList<>(); }
 
-    public void extractVerticesFromImage(BufferedImage image) {
+    public void extractVerticesFromImage(final BufferedImage image) {
         final int rows = image.getHeight();
         final int cols  = image.getWidth();
-        final int half_rows = rows >> 1;
-        final int half_cols = cols >> 1;
+        final int z0 = rows >> 1;
+        final int x0 = cols >> 1;
 
-        for (int row = 1; row < rows - 1; row++) {
-            final int z_rel = half_rows - row;
+        for (int zi = 1; zi < rows - 1; ++zi) {
+            final int z_rel = z0 - zi;
 
-            for (int col = 1; col < cols - 1; col++) {
-                if((image.getRGB(row, col) & 0xff) != 0) {
+            for (int xi = 1; xi < cols - 1; ++xi) {
+                if((image.getRGB(xi, zi) & 0xff) != 0) {
                     // skip backgrould (white) pixels
                     continue;
                 }
-            
-                // Check if the current 3x3 pixel neighbourhood forms a vertex
-                // at the pixel (row, col) by suming its values vertically or 
-                // horizontally.
 
-                final int rowv = (image.getRGB(row, col - 1) & 0xff) & (image.getRGB(row, col + 1) & 0xff);
-                final int colv = (image.getRGB(row - 1, col) & 0xff) & (image.getRGB(row + 1, col) & 0xff);
+                // Check if the current 3x3 pixel neighbourhood forms a vertex at the pixel (xi, zi).
+                final int rowv = (image.getRGB(xi, zi - 1) & 0xff) & (image.getRGB(xi, zi + 1) & 0xff);
+                final int colv = (image.getRGB(xi - 1, zi) & 0xff) & (image.getRGB(xi + 1, zi) & 0xff);
 
                 if ((rowv == 0) && (colv == 0)) {
-                    // Corner detected (its not a horizontal or vertical line).
-                    // Translate (x_rel, z_rel) to (x,y,z) coordinates in space.
-                    final int x_rel = col - half_cols;
+                    // Corner detected. The 3x3 pixel neighbourhood its not a horizontal or vertical line
+                    // nor a isolated pixel). Translate (x_rel, z_rel) to (x,y,z) coordinates in space.
+                    final int x_rel = xi - x0;
                     this.vertices.add(this.point3DFromImage(x_rel, z_rel));
                 }
             }
