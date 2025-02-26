@@ -1,8 +1,6 @@
 package com.app;
 
 import java.io.IOException;
-import java.util.ArrayList;
-
 import com.raylib.Colors;
 import com.raylib.Raylib;
 import com.raylib.Raylib.Camera3D;
@@ -17,7 +15,7 @@ public class Main {
     @SuppressWarnings("resource")
     public static void main(String args[]) throws IOException {
         // Try to load the 3D Model
-        final String model_name = "cross";
+        final String model_name = "stairs";
 
         Model model = Model.loadModel(model_name);
         model.initialReconstruction();
@@ -64,8 +62,8 @@ public class Main {
                 for (Vector3D vec : view.getVertices()) {
                     Vector3 raylib_translate = new Vector3()
                         .x((float) vec.getX())
-                        .y((float) vec.getY())
-                        .z((float) vec.getZ());
+                        .y((float) vec.getZ())
+                        .z((float) vec.getY());
                     Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLUE);
                 }
             }
@@ -74,8 +72,8 @@ public class Main {
             for (Vector3D vec : model.getVertices()) {
                 Vector3 raylib_translate = new Vector3()
                     .x((float) vec.getX())
-                    .y((float) vec.getY())
-                    .z((float) vec.getZ());
+                    .y((float) vec.getZ())
+                    .z((float) vec.getY());
                 Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLACK);
             }
 
