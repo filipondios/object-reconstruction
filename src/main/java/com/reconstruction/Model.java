@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.math3.util.Pair;
 import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 
@@ -23,8 +24,9 @@ public class Model {
     // Constants about Models data storage
     private static final String MODEL_DIR   = "models/";
     private static final String PLANE_FILE  = "/plane.bmp";
-    private static final String CAMERA_FILE = "/camera.yml";
+    private static final String CAMERA_FILE = "/camera.yaml";
 
+    private ArrayList<Pair<Vector3D, Vector3D>> edges;
     private ArrayList<View> views;
     private ArrayList<Vector3D> vertices;
     private String name;
@@ -35,6 +37,7 @@ public class Model {
     private Model(String name) throws IOException {
         this.views = new ArrayList<>();
         this.vertices = new ArrayList<>();
+        this.edges = new ArrayList<>();
         this.name = name;
 
         // Try to load the model views from its directory.
@@ -102,7 +105,59 @@ public class Model {
         }
     }
 
+    public void generateEdges() {
+
+        // We will try to generate a edge in each axis direction (X,Y,Z) for each
+        // vertex in the model. Edges are formed between two vertices in a same axis
+        // direction (and line) that have the minimum distance between each other.
+        // This cant work with models with gaps.
+
+        for (final Vector3D vertex : this.vertices) {
+            Vector3D min_x = new Vector3D(Double.MAX_VALUE, 0, 0);
+            Vector3D min_y = new Vector3D(0, Double.MAX_VALUE, 0);
+            Vector3D min_z = new Vector3D(0, 0, Double.MAX_VALUE);
+
+            final double x = vertex.getX();
+            final double y = vertex.getY();
+            final double z = vertex.getZ();
+
+            for (final Vector3D other : this.vertices) {
+                final double ox = other.getX();
+                final double oy = other.getY();
+                final double oz = other.getZ();
+
+                // Check for horizontal (width) edges (along the X axis)
+                if ((ox > x) && (oy == y) && (oz == z) && (ox < min_x.getX())) {
+                    min_x = other;
+                }
+
+                // Check for horizontal (depth) edges (along the Y axis)
+                if ((oy > y) && (ox == x) && (oz == z) && (oy < min_y.getY())) {
+                    min_y = other;
+                }
+
+                // Check for vertical edges (along the Z axis)
+                if ((oz > z) && (ox == x) && (oy == y) && (oz < min_z.getZ())) {
+                    min_z = other;
+                }
+            }
+
+            if (min_x.getX() != Double.MAX_VALUE) { 
+                this.edges.add(new Pair<>(vertex, min_x));
+            }
+
+            if (min_y.getY() != Double.MAX_VALUE) { 
+                this.edges.add(new Pair<>(vertex, min_y));
+            }
+
+            if (min_z.getZ() != Double.MAX_VALUE) { 
+                this.edges.add(new Pair<>(vertex, min_z));
+            }
+        }
+    }
+
     public ArrayList<Vector3D> getVertices() { return this.vertices; }
+    public ArrayList<Pair<Vector3D, Vector3D>> getEdges() { return this.edges; }
     public ArrayList<View> getViews() { return this.views; }
     
     @Override

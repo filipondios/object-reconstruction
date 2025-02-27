@@ -1,8 +1,8 @@
 package com.reconstruction;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.other.Vector3DYaml;
 import java.util.ArrayList;
 import java.awt.image.BufferedImage;
@@ -21,7 +21,10 @@ public class View {
 
     @JsonIgnore
     private ArrayList<Vector3D> vertices;
-    public View() { this.vertices = new ArrayList<>(); }
+
+    public View() { 
+        this.vertices = new ArrayList<>(); 
+    }
 
     public void extractVerticesFromImage(final BufferedImage image) {
         final int rows = image.getHeight();
@@ -60,18 +63,12 @@ public class View {
         );
     }
 
-    public void setName(String name) { this.name = name; }
-    public void setPosition(Vector3D position) { this.position = position; }
-    public void setVx(Vector3D vx) { this.vx = vx; }
-    public void setVy(Vector3D vy) { this.vy = vy; }
-    public void setVz(Vector3D vz) { this.vz = vz; }
-
-    public String getName() { return this.name; }
+    public ArrayList<Vector3D> getVertices() { return this.vertices; }
     public Vector3D getPosition() { return this.position; }
+    public String getName() { return this.name; }
     public Vector3D getVx() { return this.vx; }
     public Vector3D getVy() { return this.vy; }
     public Vector3D getVz() { return this.vz; }
-    public ArrayList<Vector3D> getVertices() { return this.vertices; }
 
     @Override
     public String toString() {
