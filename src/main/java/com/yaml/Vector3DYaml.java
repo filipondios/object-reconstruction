@@ -1,4 +1,4 @@
-package com.other;
+package com.yaml;
 
 import java.io.IOException;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;

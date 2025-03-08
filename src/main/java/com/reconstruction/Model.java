@@ -2,6 +2,7 @@ package com.reconstruction;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import java.util.List;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -9,8 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
@@ -26,24 +28,20 @@ public class Model {
     private static final String PLANE_FILE  = "/plane.bmp";
     private static final String CAMERA_FILE = "/camera.yaml";
 
-    private ArrayList<Pair<Vector3D, Vector3D>> edges;
     private ArrayList<View> views;
     private ArrayList<Vector3D> vertices;
+    private ArrayList<Pair<Vector3D, Vector3D>> edges;
     private String name;
 
-    // Class unique instance
-    private static Model model;
-
-    private Model(String name) throws IOException {
+    public Model(String name) throws IOException {
         this.views = new ArrayList<>();
         this.vertices = new ArrayList<>();
         this.edges = new ArrayList<>();
         this.name = name;
 
-        // Try to load the model views from its directory.
-        final Set<Path> views = Files.list(Paths.get(MODEL_DIR + name))
+        final List<Path> views = Files.list(Paths.get(MODEL_DIR, name))
             .filter(Files::isDirectory)
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
 
         for (final Path view_path : views) {          
             // Load the camera position and orientation vectors
@@ -55,12 +53,20 @@ public class Model {
             view.extractVerticesFromImage(view_image);
             this.views.add(view);
         }
+
+        // Sort the list of views from the highest to the lowest number 
+        // of vertices so there are more chances to get a successful 
+        // reconstruction earlier.
+        Collections.sort(this.views, new Comparator<View>() {
+            @Override
+            public int compare(View v1, View v2) {
+                final int v1_vertices = v1.getVertices().size();
+                final int v2_vertices = v2.getVertices().size();
+                return Integer.compare(v2_vertices, v1_vertices);
+            }
+        });
     }
 
-    public static Model loadModel(String name) throws IOException {
-        if (model == null) { model = new Model(name); } 
-        return model;
-    }
 
     public void initialReconstruction() {
         final View view1 = this.views.get(0);

@@ -3,7 +3,7 @@ package com.reconstruction;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.other.Vector3DYaml;
+import com.yaml.Vector3DYaml;
 import java.util.ArrayList;
 import java.awt.image.BufferedImage;
 
@@ -69,6 +69,8 @@ public class View {
     public Vector3D getVx() { return this.vx; }
     public Vector3D getVy() { return this.vy; }
     public Vector3D getVz() { return this.vz; }
+
+    
 
     @Override
     public String toString() {
