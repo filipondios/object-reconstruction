@@ -14,3 +14,11 @@ not possible to be detected by the program. More info in the wiki.
 In case you want to read the program code and understand the steps involved, you can have a look at the wiki of this project. There you 
 will find not only an explanation of the steps to follow for the reconstruction of a three-dimensional object by its orthogonal
 views but also the description of the Java classes of the application and their use.
+
+## Compile and run the project
+
+To run this project you will need [maven](https://maven.apache.org/). Then, run the program with one command:
+
+```bash
+mvn -q clean compile && mvn -q exec:java -Dexec.mainClass="com.app.Main"
+```
