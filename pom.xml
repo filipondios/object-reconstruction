@@ -11,23 +11,20 @@
     </properties>
 
     <dependencies>
-        <!-- Graphics library -->
-        <dependency>
+        <dependency> <!-- Graphics library -->
             <groupId>uk.co.electronstudio.jaylib</groupId>
             <artifactId>jaylib</artifactId>
             <version>[5.5.0,5.6)</version>
         </dependency>
-        <!-- Math (linear eq. systems) -->
-        <dependency>
+        <dependency> <!-- Math (linear eq. systems) -->
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
         </dependency>
-        <!-- YAML deserializing -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.14.2</version>
+        <dependency> <!-- JSON deserializing -->
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.12.1</version>
             </dependency>
         </dependencies>
 </project>
