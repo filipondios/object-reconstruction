@@ -1,13 +1,12 @@
-package com.app;
+package com.core;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.util.Pair;
+
 import com.raylib.Colors;
 import com.raylib.Raylib;
 import com.raylib.Raylib.Camera3D;
 import com.raylib.Raylib.Vector3;
-import com.reconstruction.Model;
-import com.reconstruction.View;
 
 @SuppressWarnings("resource")
 public class ModelRender {
@@ -49,7 +48,7 @@ public class ModelRender {
     private void drawModel() {
         // Draw each detected vertex in each view
         for (View view : this.model.getViews()) {
-            for (Vector3D vec : view.getVertices()) {
+            for (Vector3D vec : view.vertices) {
                 Vector3 raylib_translate = new Vector3()
                     .x((float) vec.getX())
                     .y((float) vec.getZ())

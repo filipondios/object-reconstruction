@@ -1,13 +1,14 @@
 package com.app;
 
 import java.io.IOException;
-import com.reconstruction.Model;
+import com.core.Model;
+import com.core.ModelRender;
 
 public class Main {
 
     public static void main(String args[]) throws IOException {
         // Try to load the 3D Model
-        Model model = new Model("cross");
+        Model model = new Model("cube");
         model.initialReconstruction();
         model.refineModel();
         model.generateEdges();

@@ -1,11 +1,10 @@
-package com.reconstruction;
+package com.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.util.List;
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +16,8 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.util.Pair;
+import com.google.gson.Gson;
+import static com.image.ImageProcessing.PIXEL_BACKGROUND;
 import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 
@@ -26,7 +27,7 @@ public class Model {
     // Constants about Models data storage
     private static final String MODEL_DIR   = "models/";
     private static final String PLANE_FILE  = "/plane.bmp";
-    private static final String CAMERA_FILE = "/camera.yaml";
+    private static final String CAMERA_FILE = "/camera.json";
 
     private ArrayList<View> views;
     private ArrayList<Vector3D> vertices;
@@ -43,16 +44,19 @@ public class Model {
             .filter(Files::isDirectory)
             .collect(Collectors.toList());
 
-        for (final Path view_path : views) {          
+        for (final Path view_path : views) {
+            // TODO Throw a exception in case there is no camera or view file.  
             // Load the camera position and orientation vectors
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            final View view = mapper.readValue(new File(view_path + CAMERA_FILE), View.class);
-            
+            Reader reader = new FileReader(view_path + CAMERA_FILE);
+            final View view = (new Gson()).fromJson(reader, View.class);
+            reader.close();
+
             // Load the view projection plane
-            final BufferedImage view_image = ImageIO.read(new File(view_path + PLANE_FILE));
-            view.extractVerticesFromImage(view_image);
+            view.setViewPlane(ImageIO.read(new File(view_path + PLANE_FILE)));
             this.views.add(view);
         }
+
+        // TODO Throw an error if there are less than 3 views.
 
         // Sort the list of views from the highest to the lowest number 
         // of vertices so there are more chances to get a successful 
@@ -60,51 +64,66 @@ public class Model {
         Collections.sort(this.views, new Comparator<View>() {
             @Override
             public int compare(View v1, View v2) {
-                final int v1_vertices = v1.getVertices().size();
-                final int v2_vertices = v2.getVertices().size();
+                final int v1_vertices = v1.vertices.size();
+                final int v2_vertices = v2.vertices.size();
                 return Integer.compare(v2_vertices, v1_vertices);
             }
         });
     }
 
-
     public void initialReconstruction() {
         final View view1 = this.views.get(0);
         final View view2 = this.views.get(1);
 
-        for (final Vector3D p1 : view1.getVertices()) {
-            for (final Vector3D p2 : view2.getVertices()) {
+        for (final Vector3D p1 : view1.vertices) {
+            // boolean used = false;
+
+            for (final Vector3D p2 : view2.vertices) {
                 // Check if the line which has direction 'view0.vy' and passes
                 // through 'p1' intersects with the line which has direction 
                 // 'view1.vy' and passes through 'p2'.
 
-                final Line line1 = new Line(p1, p1.add(view1.getVy()), 0.0001);
-                final Line line2 = new Line(p2, p2.add(view2.getVy()), 0.0001);
+                final Line line1 = new Line(p1, p1.add(view1.vy), 0.0001);
+                final Line line2 = new Line(p2, p2.add(view2.vy), 0.0001);
                 final Vector3D intersection = line1.intersection(line2);
 
                 if (line1.intersection(line2) != null) {
                     this.vertices.add(intersection);
+                    //used = true;
                 }
             }
+
+            /*if(!used) {
+                // TODO Add vertex to discarded vertex list.
+                // Has to be a pair (Vertex, View.Vy)
+            }*/
         }
     }
 
     public void refineModel() {
+        // TODO Use a iterator to skip the fist two elements so there is no need
+        // to get each view using indexing.
+
         for (int i = 2; i < this.views.size(); ++i) {
             // Given a new view, back project all the current model vertices
             // into the view image plane and eliminate those model vertices 
-            // which its back projection is not found in the image plane.
-            final View current = this.views.get(i);
-            final Plane view_plane = new Plane(current.getVertices().get(0),
-                current.getVy(), 0.001);
+            // which its back projection is not part of the contour of the image
 
+            final View current_view = this.views.get(i);
+            final Plane view_plane = new Plane(current_view.vertices.get(0),
+                current_view.vy, 0.001);
             Iterator<Vector3D> iterator = this.vertices.iterator();
+
             while (iterator.hasNext()) {
                 Vector3D vertex = iterator.next();
-                final Line line = new Line(vertex, vertex.add(current.getVy()), 0.0001);
+                final Line line = new Line(vertex, vertex.add(current_view.vy), 0.0001);
                 final Vector3D intersection = view_plane.intersection(line);
                 
-                if(!current.getVertices().contains(intersection)) {
+                // TODO Change 0xff to a constant value like WHITE
+                /*if(current_view.realToPlanePoint(intersection) == PIXEL_BACKGROUND) {
+                    iterator.remove();
+                }*/
+                if(!current_view.vertices.contains(intersection)) {
                     iterator.remove();
                 }
             }
