@@ -15,11 +15,11 @@ import java.util.Iterator;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.util.Pair;
 import com.google.gson.Gson;
-import static com.image.ImageProcessing.PIXEL_BACKGROUND;
-import org.apache.commons.math3.geometry.euclidean.threed.Line;
-import org.apache.commons.math3.geometry.euclidean.threed.Plane;
+import com.image.ImageProcessing;
 
 
 public class Model {
@@ -48,7 +48,7 @@ public class Model {
             // TODO Throw a exception in case there is no camera or view file.  
             // Load the camera position and orientation vectors
             Reader reader = new FileReader(view_path + CAMERA_FILE);
-            final View view = (new Gson()).fromJson(reader, View.class);
+            View view = (new Gson()).fromJson(reader, View.class);
             reader.close();
 
             // Load the view projection plane
@@ -75,28 +75,21 @@ public class Model {
         final View view1 = this.views.get(0);
         final View view2 = this.views.get(1);
 
-        for (final Vector3D p1 : view1.vertices) {
-            // boolean used = false;
+        for (final Vector3D v1 : view1.vertices) {
 
-            for (final Vector3D p2 : view2.vertices) {
+            for (final Vector3D v2 : view2.vertices) {
                 // Check if the line which has direction 'view0.vy' and passes
                 // through 'p1' intersects with the line which has direction 
                 // 'view1.vy' and passes through 'p2'.
 
-                final Line line1 = new Line(p1, p1.add(view1.vy), 0.0001);
-                final Line line2 = new Line(p2, p2.add(view2.vy), 0.0001);
+                final Line line1 = new Line(v1, v1.add(view1.vy), 0.0001);
+                final Line line2 = new Line(v2, v2.add(view2.vy), 0.0001);
                 final Vector3D intersection = line1.intersection(line2);
 
                 if (line1.intersection(line2) != null) {
                     this.vertices.add(intersection);
-                    //used = true;
                 }
             }
-
-            /*if(!used) {
-                // TODO Add vertex to discarded vertex list.
-                // Has to be a pair (Vertex, View.Vy)
-            }*/
         }
     }
 
@@ -109,21 +102,17 @@ public class Model {
             // into the view image plane and eliminate those model vertices 
             // which its back projection is not part of the contour of the image
 
-            final View current_view = this.views.get(i);
-            final Plane view_plane = new Plane(current_view.vertices.get(0),
-                current_view.vy, 0.001);
             Iterator<Vector3D> iterator = this.vertices.iterator();
+            final View view = this.views.get(i);
 
             while (iterator.hasNext()) {
-                Vector3D vertex = iterator.next();
-                final Line line = new Line(vertex, vertex.add(current_view.vy), 0.0001);
-                final Vector3D intersection = view_plane.intersection(line);
-                
-                // TODO Change 0xff to a constant value like WHITE
-                /*if(current_view.realToPlanePoint(intersection) == PIXEL_BACKGROUND) {
-                    iterator.remove();
-                }*/
-                if(!current_view.vertices.contains(intersection)) {
+                Vector2D projection = view.realToPlanePoint(iterator.next());
+                projection = view.planeToImageCoord(projection);
+                final int x = (int) projection.getX();
+                final int z = (int) projection.getY();
+                final int pixel_value = view.plane.getRGB(x, z) & 0xff; 
+
+                if(pixel_value == ImageProcessing.PIXEL_BACKGROUND) {
                     iterator.remove();
                 }
             }

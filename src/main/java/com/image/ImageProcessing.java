@@ -6,8 +6,9 @@ import java.util.ArrayList;
 
 public class ImageProcessing {
 
-    public static final int PIXEL_BACKGROUND = 0x00;
-    public static final int PIXEL_CONTOUR = 0xff;
+    public static final int PIXEL_BACKGROUND = 0xff;
+    public static final int PIXEL_OBJECT = 0x7f;
+    public static final int PIXEL_CONTOUR = 0x00;
 
     public static BufferedImage trimImage(BufferedImage img) {
         final int rows = img.getHeight();
@@ -18,7 +19,7 @@ public class ImageProcessing {
 
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                if((img.getRGB(i, j) & 0xff) == PIXEL_CONTOUR) {
+                if((img.getRGB(i, j) & 0xff) != PIXEL_CONTOUR) {
                     // skip background (white) pixels
                     continue;
                 }
@@ -46,7 +47,7 @@ public class ImageProcessing {
             final int z_rel = z0 - zi;
 
             for (int xi = 1; xi < cols - 1; ++xi) {
-                if((img.getRGB(xi, zi)& 0xff) == PIXEL_CONTOUR) {
+                if((img.getRGB(xi, zi) & 0xff) != PIXEL_CONTOUR) {
                     // skip background (white) pixels
                     continue;
                 }
@@ -56,7 +57,7 @@ public class ImageProcessing {
                 final int hv = img.getRGB(xi, zi + 1) & img.getRGB(xi, zi - 1) & 0xff;
                 final int vv = img.getRGB(xi - 1, zi) & img.getRGB(xi + 1, zi) & 0xff;
 
-                if ((hv  == PIXEL_BACKGROUND) && (vv == PIXEL_BACKGROUND)) {
+                if ((hv  == PIXEL_CONTOUR) && (vv == PIXEL_CONTOUR)) {
                     // Corner detected. The 3x3 pixel neighbourhood its not a
                     // horizontal or vertical line nor a isolated pixel).
                     vertices.add(new Vector2D(xi - x0, z_rel));
