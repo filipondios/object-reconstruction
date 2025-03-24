@@ -2,7 +2,6 @@ package com.core;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.util.Pair;
-
 import com.raylib.Colors;
 import com.raylib.Raylib;
 import com.raylib.Raylib.Camera3D;
@@ -14,7 +13,9 @@ public class ModelRender {
     private float camera_speed;
     private Model model;
     private Camera3D camera;
-    
+    private boolean draw_model_vertices;
+    private boolean draw_view_vertices;
+
     public ModelRender(Model model) {
         this.model = model;
         this.camera = new Camera3D()
@@ -24,6 +25,14 @@ public class ModelRender {
             .up(new Vector3().y(1))
             .fovy(90);
         this.camera_speed = 0.05f;
+    }
+
+    public void showModelVertices(boolean show) {
+        this.draw_model_vertices = show;
+    }
+
+    public void showViewVertices(boolean show) {
+        this.draw_view_vertices = show;
     }
 
     public void initialize() {
@@ -46,28 +55,32 @@ public class ModelRender {
     }
 
     private void drawModel() {
-        // Draw each detected vertex in each view
-        for (View view : this.model.getViews()) {
-            for (Vector3D vec : view.vertices) {
+        if (this.draw_view_vertices) {
+            // Draw each detected vertex in each view
+            for (View view : this.model.views) {
+                for (Vector3D vec : view.vertices) {
+                    Vector3 raylib_translate = new Vector3()
+                        .x((float) vec.getX())
+                        .y((float) vec.getZ())
+                        .z((float) vec.getY());
+                    Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLUE);
+                }
+            }
+        }
+        
+        if (this.draw_model_vertices) {
+            // Draw the reconstructed model vertices
+            for (Vector3D vec : this.model.vertices) {
                 Vector3 raylib_translate = new Vector3()
                     .x((float) vec.getX())
                     .y((float) vec.getZ())
                     .z((float) vec.getY());
-                Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLUE);
+                Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLACK);
             }
         }
 
-        // Draw the reconstructed model vertices
-        for (Vector3D vec : this.model.getVertices()) {
-            Vector3 raylib_translate = new Vector3()
-                .x((float) vec.getX())
-                .y((float) vec.getZ())
-                .z((float) vec.getY());
-            Raylib.DrawSphere(raylib_translate, 0.5f, Colors.BLACK);
-        }
-
         // Draw the reconstructed model edges.
-        for (Pair<Vector3D, Vector3D> edge : this.model.getEdges()) {
+        for (Pair<Vector3D, Vector3D> edge : this.model.edges) {
             Vector3D a = edge.getKey();
             Vector3D b = edge.getValue();
 
