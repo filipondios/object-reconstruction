@@ -1,18 +1,14 @@
 package com.core;
 
-import java.util.List;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
@@ -23,44 +19,44 @@ import com.image.ImageProcessing;
 
 
 public class Model {
-    
-    // Constants about Models data storage
-    private static final String MODEL_DIR   = "models/";
-    private static final String PLANE_FILE  = "/plane.bmp";
-    private static final String CAMERA_FILE = "/camera.json";
 
-    private ArrayList<View> views;
-    private ArrayList<Vector3D> vertices;
-    private ArrayList<Pair<Vector3D, Vector3D>> edges;
+    public ArrayList<View> views;
+    public HashSet<Vector3D> vertices;
+    public ArrayList<Pair<Vector3D, Vector3D>> edges;
+    private HashMap<Vector3D, Vector3D> discarted;
     private String name;
 
-    public Model(String name) throws IOException {
+    public Model(String name) throws Exception {
         this.views = new ArrayList<>();
-        this.vertices = new ArrayList<>();
+        this.vertices = new HashSet<>();
+        this.discarted = new HashMap<>();
         this.edges = new ArrayList<>();
         this.name = name;
 
-        final List<Path> views = Files.list(Paths.get(MODEL_DIR, name))
-            .filter(Files::isDirectory)
-            .collect(Collectors.toList());
+        // A model consists of subdirectories. Each subdirectory stores the
+        // information of a different view. Each view consists of the files
+        // camera.json and plane.bmp.
 
-        for (final Path view_path : views) {
-            // TODO Throw a exception in case there is no camera or view file.  
-            // Load the camera position and orientation vectors
-            Reader reader = new FileReader(view_path + CAMERA_FILE);
-            View view = (new Gson()).fromJson(reader, View.class);
-            reader.close();
+        for (File file : (new File("models/" + name)).listFiles()) {
+            if(file.isDirectory()) {
+                final String view_camera = file.getCanonicalPath() + "/camera.json";
+                final String view_plane  = file.getCanonicalPath() + "/plane.bmp"; 
 
-            // Load the view projection plane
-            view.setViewPlane(ImageIO.read(new File(view_path + PLANE_FILE)));
-            this.views.add(view);
+                // Load the camera position and orientation vectors.
+                final Reader json_reader = new FileReader(view_camera);
+                View view = (new Gson()).fromJson(json_reader, View.class);
+                json_reader.close();
+
+                // Load the view projection plane (BMP) image.
+                view.setViewPlane(ImageIO.read(new File(view_plane)));
+                this.views.add(view);
+            }
         }
 
-        // TODO Throw an error if there are less than 3 views.
+        // Sorting the views from highest to lowest number of vertices increases
+        // the likelihood of intersection between vertices from different views, 
+        // leading to better results in both the initial and refinement stages.
 
-        // Sort the list of views from the highest to the lowest number 
-        // of vertices so there are more chances to get a successful 
-        // reconstruction earlier.
         Collections.sort(this.views, new Comparator<View>() {
             @Override
             public int compare(View v1, View v2) {
@@ -71,56 +67,85 @@ public class Model {
         });
     }
 
-    public void initialReconstruction() {
+    public void generateInitialReconstruction() {
         final View view1 = this.views.get(0);
         final View view2 = this.views.get(1);
 
         for (final Vector3D v1 : view1.vertices) {
+            final Line line1 = new Line(v1, v1.add(view1.vy), 0.0001);
+            boolean intersected = false;
 
             for (final Vector3D v2 : view2.vertices) {
                 // Check if the line which has direction 'view0.vy' and passes
                 // through 'p1' intersects with the line which has direction 
                 // 'view1.vy' and passes through 'p2'.
 
-                final Line line1 = new Line(v1, v1.add(view1.vy), 0.0001);
                 final Line line2 = new Line(v2, v2.add(view2.vy), 0.0001);
                 final Vector3D intersection = line1.intersection(line2);
 
-                if (line1.intersection(line2) != null) {
+                if (intersection != null) {
                     this.vertices.add(intersection);
+                    intersected = true;
                 }
+            }
+
+            if (!intersected) {
+                this.discarted.put(v1, view1.vy);
             }
         }
     }
 
-    public void refineModel() {
+    public void refineModelVertices() {
         // TODO Use a iterator to skip the fist two elements so there is no need
         // to get each view using indexing.
 
         for (int i = 2; i < this.views.size(); ++i) {
             // Given a new view, back project all the current model vertices
             // into the view image plane and eliminate those model vertices 
-            // which its back projection is not part of the contour of the image
+            // which its back projection is not part of the contour or interior
+            // of the countour of the object.
 
-            Iterator<Vector3D> iterator = this.vertices.iterator();
+            final Iterator<Vector3D> vertex_iterator = this.vertices.iterator();
             final View view = this.views.get(i);
 
-            while (iterator.hasNext()) {
-                Vector2D projection = view.realToPlanePoint(iterator.next());
+            while (vertex_iterator.hasNext()) {
+                Vector2D projection = view.realToPlanePoint(vertex_iterator.next());
                 projection = view.planeToImageCoord(projection);
                 final int x = (int) projection.getX();
                 final int z = (int) projection.getY();
                 final int pixel_value = view.plane.getRGB(x, z) & 0xff; 
 
                 if(pixel_value == ImageProcessing.PIXEL_BACKGROUND) {
-                    iterator.remove();
+                    vertex_iterator.remove();
                 }
             }
+
+            /*final Iterator<Pair<Vector3D, Vector3D>> it = discarted_vertices.iterator();
+
+            while (it.hasNext()) {
+                final Pair<Vector3D, Vector3D> discarted_pair = it.next();
+                final Vector3D discarted_vertex = discarted_pair.getKey();
+                final Vector3D discarted_vy = discarted_pair.getValue();
+                Line discarted_line = new Line(discarted_vertex, 
+                    discarted_vertex.add(discarted_vy), 0.0001);
+
+                for (Vector3D vertex : view.vertices) {
+                    Line view_line = new Line(vertex, vertex.add(view.vy), 0.0001);
+                    Vector3D intersection = discarted_line.intersection(view_line);
+                    
+                    if (intersection != null) {
+                        this.vertices.add(intersection);
+                        it.remove();
+                        break;
+                    }
+                }
+            }*/
         }
     }
 
     public void generateEdges() {
 
+        // TODO edges over the object surface.
         // We will try to generate a edge in each axis direction (X,Y,Z) for each
         // vertex in the model. Edges are formed between two vertices in a same axis
         // direction (and line) that have the minimum distance between each other.
@@ -169,11 +194,7 @@ public class Model {
             }
         }
     }
-
-    public ArrayList<Vector3D> getVertices() { return this.vertices; }
-    public ArrayList<Pair<Vector3D, Vector3D>> getEdges() { return this.edges; }
-    public ArrayList<View> getViews() { return this.views; }
-    
+   
     @Override
     public String toString() {
         String out = "[Model '" + this.name + "']\n";
