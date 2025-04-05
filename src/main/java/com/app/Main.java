@@ -18,6 +18,6 @@ public class Main {
         render.showModelVertices(false);
         render.showViewVertices(false);
         render.initialize();
-        render.renderLoop();
+        render.renderLoop();   
     }
 }

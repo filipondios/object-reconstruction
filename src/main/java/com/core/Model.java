@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import javax.imageio.ImageIO;
@@ -23,13 +22,11 @@ public class Model {
     public ArrayList<View> views;
     public HashSet<Vector3D> vertices;
     public ArrayList<Pair<Vector3D, Vector3D>> edges;
-    private HashMap<Vector3D, Vector3D> discarted;
     private String name;
 
     public Model(String name) throws Exception {
         this.views = new ArrayList<>();
         this.vertices = new HashSet<>();
-        this.discarted = new HashMap<>();
         this.edges = new ArrayList<>();
         this.name = name;
 
@@ -68,12 +65,12 @@ public class Model {
     }
 
     public void generateInitialReconstruction() {
+        // TODO Check for parallel vy vectors
         final View view1 = this.views.get(0);
         final View view2 = this.views.get(1);
 
         for (final Vector3D v1 : view1.vertices) {
             final Line line1 = new Line(v1, v1.add(view1.vy), 0.0001);
-            boolean intersected = false;
 
             for (final Vector3D v2 : view2.vertices) {
                 // Check if the line which has direction 'view0.vy' and passes
@@ -85,113 +82,82 @@ public class Model {
 
                 if (intersection != null) {
                     this.vertices.add(intersection);
-                    intersected = true;
                 }
-            }
-
-            if (!intersected) {
-                this.discarted.put(v1, view1.vy);
             }
         }
     }
 
     public void refineModelVertices() {
-        // TODO Use a iterator to skip the fist two elements so there is no need
-        // to get each view using indexing.
+        final Iterator<Vector3D> iterator = this.vertices.iterator();
 
-        for (int i = 2; i < this.views.size(); ++i) {
-            // Given a new view, back project all the current model vertices
-            // into the view image plane and eliminate those model vertices 
-            // which its back projection is not part of the contour or interior
-            // of the countour of the object.
+        while (iterator.hasNext()) {
+            Vector3D vertex = iterator.next();
 
-            final Iterator<Vector3D> vertex_iterator = this.vertices.iterator();
-            final View view = this.views.get(i);
-
-            while (vertex_iterator.hasNext()) {
-                Vector2D projection = view.realToPlanePoint(vertex_iterator.next());
+            for (View view : this.views) {
+                Vector2D projection = view.realToPlanePoint(vertex);
                 projection = view.planeToImageCoord(projection);
+
                 final int x = (int) projection.getX();
                 final int z = (int) projection.getY();
-                final int pixel_value = view.plane.getRGB(x, z) & 0xff; 
+                final int pixel_value = view.plane.getRGB(x, z) & 0xff;
 
                 if(pixel_value == ImageProcessing.PIXEL_BACKGROUND) {
-                    vertex_iterator.remove();
+                    iterator.remove();
+                    break;
                 }
             }
-
-            /*final Iterator<Pair<Vector3D, Vector3D>> it = discarted_vertices.iterator();
-
-            while (it.hasNext()) {
-                final Pair<Vector3D, Vector3D> discarted_pair = it.next();
-                final Vector3D discarted_vertex = discarted_pair.getKey();
-                final Vector3D discarted_vy = discarted_pair.getValue();
-                Line discarted_line = new Line(discarted_vertex, 
-                    discarted_vertex.add(discarted_vy), 0.0001);
-
-                for (Vector3D vertex : view.vertices) {
-                    Line view_line = new Line(vertex, vertex.add(view.vy), 0.0001);
-                    Vector3D intersection = discarted_line.intersection(view_line);
-                    
-                    if (intersection != null) {
-                        this.vertices.add(intersection);
-                        it.remove();
-                        break;
-                    }
-                }
-            }*/
         }
     }
 
     public void generateEdges() {
 
-        // TODO edges over the object surface.
         // We will try to generate a edge in each axis direction (X,Y,Z) for each
         // vertex in the model. Edges are formed between two vertices in a same axis
         // direction (and line) that have the minimum distance between each other.
         // This cant work with models with gaps.
 
-        for (final Vector3D vertex : this.vertices) {
-            Vector3D min_x = new Vector3D(Double.MAX_VALUE, 0, 0);
-            Vector3D min_y = new Vector3D(0, Double.MAX_VALUE, 0);
-            Vector3D min_z = new Vector3D(0, 0, Double.MAX_VALUE);
+        final Vector3D x_axis = new Vector3D(1, 0, 0);
+        final Vector3D y_axis = new Vector3D(0, 1, 0);
+        final Vector3D z_axis = new Vector3D(0, 0, 1);
 
-            final double x = vertex.getX();
-            final double y = vertex.getY();
-            final double z = vertex.getZ();
-
-            for (final Vector3D other : this.vertices) {
-                final double ox = other.getX();
-                final double oy = other.getY();
-                final double oz = other.getZ();
-
-                // Check for horizontal (width) edges (along the X axis)
-                if ((ox > x) && (oy == y) && (oz == z) && (ox < min_x.getX())) {
-                    min_x = other;
+        for (Vector3D vertex : vertices) {
+            // Crear líneas en las tres direcciones principales desde el vértice actual
+            final Line x_line = new Line(vertex, vertex.add(x_axis), 0.0001);
+            final Line y_line = new Line(vertex, vertex.add(y_axis), 0.0001);
+            final Line z_line = new Line(vertex, vertex.add(z_axis), 0.0001);
+            
+            Vector3D minX = null;
+            Vector3D minY = null;
+            Vector3D minZ = null;
+            
+            for (Vector3D other : vertices) {
+                if (vertex.equals(other)) continue;
+                
+                if (x_line.contains(other)) {
+                    if (other.getX() > vertex.getX() && 
+                        (minX == null || other.getX() < minX.getX())) {
+                        minX = other;
+                    }
+                }
+                
+                if (y_line.contains(other)) {
+                    if (other.getY() > vertex.getY() && 
+                        (minY == null || other.getY() < minY.getY())) {
+                        minY = other;
+                    }
                 }
 
-                // Check for horizontal (depth) edges (along the Y axis)
-                if ((oy > y) && (ox == x) && (oz == z) && (oy < min_y.getY())) {
-                    min_y = other;
-                }
-
-                // Check for vertical edges (along the Z axis)
-                if ((oz > z) && (ox == x) && (oy == y) && (oz < min_z.getZ())) {
-                    min_z = other;
+                if (z_line.contains(other)) {
+                    if (other.getZ() > vertex.getZ() && 
+                        (minZ == null || other.getZ() < minZ.getZ())) {
+                        minZ = other;
+                    }
                 }
             }
 
-            if (min_x.getX() != Double.MAX_VALUE) { 
-                this.edges.add(new Pair<>(vertex, min_x));
-            }
-
-            if (min_y.getY() != Double.MAX_VALUE) { 
-                this.edges.add(new Pair<>(vertex, min_y));
-            }
-
-            if (min_z.getZ() != Double.MAX_VALUE) { 
-                this.edges.add(new Pair<>(vertex, min_z));
-            }
+            if (minX != null) this.edges.add(new Pair<>(vertex, minX));
+            if (minY != null) this.edges.add(new Pair<>(vertex, minY));
+            if (minZ != null) this.edges.add(new Pair<>(vertex, minZ));
         }
     }
    

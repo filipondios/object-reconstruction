@@ -47,23 +47,18 @@ public class ImageProcessing {
             final int z_rel = z0 - zi;
 
             for (int xi = 1; xi < cols - 1; ++xi) {
-                if((img.getRGB(xi, zi) & 0xff) != PIXEL_CONTOUR) {
-                    // skip background (white) pixels
-                    continue;
-                }
-
-                // Check if the current 3x3 pixel neighbourhood forms a contour
-                // vertex at the current iteration pixel (xi, zi).
-                final int hv = img.getRGB(xi, zi + 1) & img.getRGB(xi, zi - 1) & 0xff;
-                final int vv = img.getRGB(xi - 1, zi) & img.getRGB(xi + 1, zi) & 0xff;
-
-                if ((hv  == PIXEL_CONTOUR) && (vv == PIXEL_CONTOUR)) {
-                    // Corner detected. The 3x3 pixel neighbourhood its not a
-                    // horizontal or vertical line nor a isolated pixel).
+                if (((img.getRGB(xi, zi) & 0xff) == PIXEL_CONTOUR) && 
+                    isVertex(xi, zi, img)) {
                     vertices.add(new Vector2D(xi - x0, z_rel));
-                }
+                }                
             }
         }
         return vertices;
+    }
+
+    public static boolean isVertex(int x, int z, final BufferedImage img) {
+        final int hv = img.getRGB(x, z + 1) & img.getRGB(x, z - 1) & 0xff;
+        final int vv = img.getRGB(x - 1, z) & img.getRGB(x + 1, z) & 0xff;
+        return (hv  == PIXEL_CONTOUR) && (vv == PIXEL_CONTOUR);
     }
 }
