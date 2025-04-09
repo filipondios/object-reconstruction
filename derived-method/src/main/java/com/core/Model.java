@@ -34,7 +34,7 @@ public class Model {
         // information of a different view. Each view consists of the files
         // camera.json and plane.bmp.
 
-        for (File file : (new File("models/" + name)).listFiles()) {
+        for (File file : (new File("../models/" + name)).listFiles()) {
             if(file.isDirectory()) {
                 final String view_camera = file.getCanonicalPath() + "/camera.json";
                 final String view_plane  = file.getCanonicalPath() + "/plane.bmp"; 
