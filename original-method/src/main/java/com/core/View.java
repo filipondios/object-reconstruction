@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
-
 import com.util.Images;
 import com.util.Segment;
 
@@ -33,6 +33,20 @@ public class View {
     public static boolean isViewDir(final String path) {
         return (new File(path + "/camera.json").isFile())
             && (new File(path + "/plane.bmp").isFile());
+    }
+
+    public Vector3D planeToRealPoint(final Vector2D point) {
+        // (x,z) -> (xi,yi,zi) = origin + x*vx + z*vz
+        final double x = point.getX();
+        final double z = point.getY();
+        
+        return this.camera.position
+            .add(this.camera.vx.scalarMultiply(x))
+            .add(this.camera.vz.scalarMultiply(z));
+    }
+
+    public Vector2D realToPlanePoint(final Vector3D point) {
+        return null;
     }
 
     @Override

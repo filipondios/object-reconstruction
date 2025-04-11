@@ -1,15 +1,18 @@
 package com.util;
 
 import java.util.ArrayList;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.math3.geometry.Vector;
 
-public class Polygon {
+public class Polygon<T extends Vector<?>> {
 
-    public ArrayList<Vector3D> vertices;
-    public ArrayList<Segment<Vector3D>> edges;
+    public final ArrayList<Segment<T>> edges;
+    public final ArrayList<T> points;
 
-    public Polygon(ArrayList<Vector3D> vertices, ArrayList<Segment<Vector3D>> edges) {
-        this.vertices = vertices;
-        this.edges = edges;
+    public Polygon(final ArrayList<T> points) {
+        // The edges will be generated later.
+        this.points = points;
+        this.edges = new ArrayList<>();
     }
+
+    public void generateEdges() {}
 }

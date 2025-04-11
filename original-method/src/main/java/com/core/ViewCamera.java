@@ -18,7 +18,7 @@ public class ViewCamera {
 
     public static ViewCamera deserializeFrom(final String path) throws IOException {
         final Reader jsonReader = new FileReader(path);
-        ViewCamera camera = (new Gson()).fromJson(jsonReader, ViewCamera.class);
+        final ViewCamera camera = (new Gson()).fromJson(jsonReader, ViewCamera.class);
         jsonReader.close();
         return camera;
     }
