@@ -1,5 +1,6 @@
 package com.util;
 
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
@@ -11,6 +12,44 @@ import com.core.View;
 
 public class Images {
 
+    private static int Black = 0x000000;
+    private static int White = 0xffffff;
+    private static int rgbMask = White;
+
+
+    /// Dada una imagen de una vista, recortar solo la figura del objeto
+    /// y anadirle un borde de un pixel. Despues, solo preservar los bordes.
+    
+    public static BufferedImage preprocess(final BufferedImage img) {
+        int min_row = Integer.MAX_VALUE, max_row = Integer.MIN_VALUE;
+        int min_col = Integer.MAX_VALUE, max_col = Integer.MIN_VALUE;
+
+        // Get object bounds
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                if((img.getRGB(j, i) & 0xffffff) != 0xffffff) {
+                    // skip non-border pixels
+                    continue;
+                }
+
+                if (i < min_row) min_row = i;
+                if (i > max_row) max_row = i;
+                if (j < min_col) min_col = j;
+                if (j > max_col) max_col = j;
+            }
+        }
+
+        final int new_cols = max_col - min_col + 1;
+        final int new_rows = max_row - min_row + 1;
+        final BufferedImage crop = img.getSubimage(min_col, min_row, new_cols, new_rows);
+        final BufferedImage result = new BufferedImage(new_cols + 2, new_rows + 2, crop.getType());
+        
+        final Graphics g = result.getGraphics();
+        g.drawImage(crop, 1, 1, null);
+        g.dispose();
+        return getImageCountour(result);
+    }
+
     /// Given a projection image of an object, process this image so that
     /// only the contour of the figure is subtracted.
     ///
@@ -21,17 +60,13 @@ public class Images {
     /// The result will be a image with a black background and the pixels 
     /// from the object contour represented as white.
     
-    public static BufferedImage getImageCountour(final BufferedImage img) {
-        final int white = 0xffffff;
-        final int black = 0x000000;
-        final int rgbMask = white;
-
+    private static BufferedImage getImageCountour(final BufferedImage img) {
         // STEP 1: Fill the projection interior gaps
         for (int i = 0; i < img.getHeight(); i++) {
             for (int j = 0; j < img.getWidth(); j++) {
-                if ((img.getRGB(j, i) & rgbMask) == white)
-                    img.setRGB(j, i, black);
-                else img.setRGB(j, i, white);
+                if ((img.getRGB(j, i) & rgbMask) == White)
+                    img.setRGB(j, i, Black);
+                else img.setRGB(j, i, White);
             }
         }
 
@@ -42,8 +77,55 @@ public class Images {
             .filter(img, null);
     }
 
+
+    public static Polygon<Vector2D> getContourPolygon(final BufferedImage img) {
+        final ArrayList<Vector2D> points = new ArrayList<>();
+        int initial_x = -1, initial_y = 1;
+
+        // Get the first vertex of the object contour
+        for (int i = 1; i < img.getWidth() - 1; i++) {
+            if ((img.getRGB(i, initial_y) & rgbMask) == White) {
+                initial_x = i;
+                break;
+            }
+        }
+
+        // Iterar por los pixeles de la linea que define el contorno del objeto
+        // proyectado y obtener las coordenadas de los vertices de dicha linea.
+
+        final int[][] directions = new int[][] {{1,0}, {0,1}, {-1,0}, {0,-1}};
+        int previous_x = initial_x, previous_y = initial_y;
+        int current_x = initial_x, current_y = initial_y;
+   
+        do {
+            // Verify if the current pixel is a vertex. If it is, add it to the polygon.
+            final int horz = img.getRGB(current_x - 1, current_y) | img.getRGB(current_x + 1, current_y);
+            final int vert = img.getRGB(current_x, current_y - 1) | img.getRGB(current_x, current_y + 1);
+
+            if (((horz & rgbMask) == White) && ((vert & rgbMask) == White)) {
+                points.add(new Vector2D(current_x, current_y));
+            }
+
+            for (final int[] direction : directions) {
+                final int next_x = current_x + direction[0];
+                final int next_y = current_y + direction[1];
+
+                if ((img.getRGB(next_x, next_y) & rgbMask) == White &&
+                    !(next_x == previous_x && next_y == previous_y)) {
+                    previous_x = current_x;
+                    previous_y = current_y;
+                    current_x = next_x;
+                    current_y = next_y;
+                    break;
+                }
+            }
+        } while (!(current_x == initial_x && current_y == initial_y));
+        return new Polygon<Vector2D>(points);
+    }
+
+
     public static ArrayList<Segment<Vector2D>> getRasterizationSegments(View view, Line common_line) {
-        ArrayList<Segment<Vector2D>> list = new ArrayList<>();
+        final ArrayList<Segment<Vector2D>> list = new ArrayList<>();
 
         // Calculate the direction of the rasterization segments. To do so, we need to
         // calculate the direction vector of a perpendicular line to the common line

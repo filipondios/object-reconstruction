@@ -20,7 +20,7 @@ public class View {
     public View(final String path) {
         try {
             this.projection = ImageIO.read(new File(path + "/plane.bmp"));
-            this.projection = Images.getImageCountour(this.projection);
+            this.projection = Images.preprocess(this.projection);
             this.camera = ViewCamera.deserializeFrom(path + "/camera.json");
             this.vertices = new ArrayList<>();
             this.vertices = new ArrayList<>();
