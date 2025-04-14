@@ -24,10 +24,10 @@ public class Images {
         int min_row = Integer.MAX_VALUE, max_row = Integer.MIN_VALUE;
         int min_col = Integer.MAX_VALUE, max_col = Integer.MIN_VALUE;
 
-        // Get object bounds
+        // Get object bounds within the image
         for (int i = 0; i < img.getHeight(); i++) {
             for (int j = 0; j < img.getWidth(); j++) {
-                if((img.getRGB(j, i) & 0xffffff) != 0xffffff) {
+                if((img.getRGB(j, i) & rgbMask) == Black) {
                     // skip non-border pixels
                     continue;
                 }
@@ -41,13 +41,14 @@ public class Images {
 
         final int new_cols = max_col - min_col + 1;
         final int new_rows = max_row - min_row + 1;
+
         final BufferedImage crop = img.getSubimage(min_col, min_row, new_cols, new_rows);
-        final BufferedImage result = new BufferedImage(new_cols + 2, new_rows + 2, crop.getType());
+        final BufferedImage result = new BufferedImage(new_cols + 2, new_rows + 2, BufferedImage.TYPE_INT_RGB);
         
         final Graphics g = result.getGraphics();
         g.drawImage(crop, 1, 1, null);
         g.dispose();
-        return getImageCountour(result);
+        return result;
     }
 
     /// Given a projection image of an object, process this image so that
@@ -60,13 +61,13 @@ public class Images {
     /// The result will be a image with a black background and the pixels 
     /// from the object contour represented as white.
     
-    private static BufferedImage getImageCountour(final BufferedImage img) {
+    public static BufferedImage getImageCountour(final BufferedImage img) {
         // STEP 1: Fill the projection interior gaps
         for (int i = 0; i < img.getHeight(); i++) {
             for (int j = 0; j < img.getWidth(); j++) {
-                if ((img.getRGB(j, i) & rgbMask) == White)
-                    img.setRGB(j, i, Black);
-                else img.setRGB(j, i, White);
+                if ((img.getRGB(j, i) & rgbMask) != White)
+                    img.setRGB(j, i, White);
+                else img.setRGB(j, i, Black);
             }
         }
 
