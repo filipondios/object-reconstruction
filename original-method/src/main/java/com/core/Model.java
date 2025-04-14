@@ -67,9 +67,11 @@ public class Model {
         // plane. Those segments will be used to make contour generation lines.
 
         final ArrayList<Segment<Vector2D>> rasterizationSegments1 
-            = Images.getRasterizationSegments(view1, commonLine);
+        = null;
+        //= Images.getRasterizationSegments(view1, commonLine);
         final ArrayList<Segment<Vector2D>> rasterizationSegments2 
-            = Images.getRasterizationSegments(view2, commonLine);
+        //    = Images.getRasterizationSegments(view2, commonLine);
+        = null;
         
         // The last step is to intersect all the possible pairs of contour generation 
         // lines produced by each rasterizatrion segment in both views.
