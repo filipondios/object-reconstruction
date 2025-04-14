@@ -1,3 +1,5 @@
 target/
 derived-method/.vs/
+derived-method/.vscode/
 original-method/.vs/
+original-method/.vscode/
