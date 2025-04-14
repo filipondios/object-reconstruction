@@ -5,21 +5,50 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.util.ArrayList;
-import org.apache.commons.math3.geometry.euclidean.threed.Line;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
-import com.core.View;
 
 public class Images {
 
     private static int Black = 0x000000;
     private static int White = 0xffffff;
     private static int rgbMask = White;
+   
+    /**
+     * Given a projection image of an object, process the image so that only the
+     * contour of the figure is extracted. We assume the figure has black 
+     * borders on a white background, and the surface of the object can be of 
+     * any other color. The result should be an a black background where the 
+     * pixels corresponding to the object's contour are represented in white.
+     * @param img Projection image.
+     * @return Image containing only the contour of the object.
+     */
+    public static BufferedImage getImageCountour(final BufferedImage img) {
+        // STEP 1: Fill the projection interior gaps
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                if ((img.getRGB(j, i) & rgbMask) != White)
+                    img.setRGB(j, i, White);
+                else img.setRGB(j, i, Black);
+            }
+        }
+
+        // STEP 2: Get edges with the Laplacian kernel
+        final float[] laplacian = { -1, -1, -1, -1,  8, -1, -1, -1, -1 };
+        final Kernel kernel = new Kernel(3, 3, laplacian);
+        return (new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null))
+            .filter(img, null);
+    }
 
 
-    /// Dada una imagen de una vista, recortar solo la figura del objeto
-    /// y anadirle un borde de un pixel. Despues, solo preservar los bordes.
-    
+    /**
+     * Given an image of a projection of an object from which the contour line
+     * has already been extracted—resulting in an image with a black background
+     * and a closed white line—crop only that line and add a one-pixel 
+     * border/margin to it. In this program, the input image is an output of the
+     * {@link #getImageCountour(BufferedImage)} function.
+     * @param img Image with a closed contour line.
+     * @return Adjusted image.
+     */
     public static BufferedImage preprocess(final BufferedImage img) {
         int min_row = Integer.MAX_VALUE, max_row = Integer.MIN_VALUE;
         int min_col = Integer.MAX_VALUE, max_col = Integer.MIN_VALUE;
@@ -51,113 +80,62 @@ public class Images {
         return result;
     }
 
-    /// Given a projection image of an object, process this image so that
-    /// only the contour of the figure is subtracted.
-    ///
-    /// We assume that the figure has black borders, on a white background,
-    /// and the surface of the object has any other colour (look at the 
-    /// views (plane.bmp) of the different models in the directory "models").
-    /// 
-    /// The result will be a image with a black background and the pixels 
-    /// from the object contour represented as white.
-    
-    public static BufferedImage getImageCountour(final BufferedImage img) {
-        // STEP 1: Fill the projection interior gaps
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                if ((img.getRGB(j, i) & rgbMask) != White)
-                    img.setRGB(j, i, White);
-                else img.setRGB(j, i, Black);
-            }
-        }
 
-        // STEP 2: Get edges with the Laplacian kernel
-        final float[] laplacian = { -1, -1, -1, -1,  8, -1, -1, -1, -1 };
-        final Kernel kernel = new Kernel(3, 3, laplacian);
-        return (new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null))
-            .filter(img, null);
-    }
-
-
+    /**
+     * Given an image with a black background and a closed black line that 
+     * defines the contour of an object, obtain a polygonal line from the 
+     * vertices of that contour. In this program, the input to this function is 
+     * the result of the {@link #preprocess(BufferedImage)} function.
+     * @param img An image with the object's contour line.
+     * @return Polygonal line wich defines the object's contour.
+     */
     public static Polygon<Vector2D> getContourPolygon(final BufferedImage img) {
         final ArrayList<Vector2D> points = new ArrayList<>();
-        int initial_x = -1, initial_y = 1;
+        int initial_x = -1, initial_z = 1;
 
-        // Get the first vertex of the object contour
+        // Get the first vertex of the object contour.
         for (int i = 1; i < img.getWidth() - 1; i++) {
-            if ((img.getRGB(i, initial_y) & rgbMask) == White) {
+            if ((img.getRGB(i, initial_z) & rgbMask) == White) {
                 initial_x = i;
                 break;
             }
         }
 
-        // Iterar por los pixeles de la linea que define el contorno del objeto
-        // proyectado y obtener las coordenadas de los vertices de dicha linea.
+        // Iterate over the pixels of the line that defines the contour of the 
+        // projected object and obtain the coordinates of the vertices.
 
         final int[][] directions = new int[][] {{1,0}, {0,1}, {-1,0}, {0,-1}};
-        int previous_x = initial_x, previous_y = initial_y;
-        int current_x = initial_x, current_y = initial_y;
+        int previous_x = initial_x, previous_z = initial_z;
+        int current_x = initial_x, current_z = initial_z;
+
+        final int z0 = img.getHeight() >> 1;
+        final int x0 = img.getWidth()  >> 1;
    
         do {
-            // Verify if the current pixel is a vertex. If it is, add it to the polygon.
-            final int horz = img.getRGB(current_x - 1, current_y) | img.getRGB(current_x + 1, current_y);
-            final int vert = img.getRGB(current_x, current_y - 1) | img.getRGB(current_x, current_y + 1);
+            // Verify if the current pixel is a vertex.
+            final int horz = img.getRGB(current_x - 1, current_z) | img.getRGB(current_x + 1, current_z);
+            final int vert = img.getRGB(current_x, current_z - 1) | img.getRGB(current_x, current_z + 1);
 
             if (((horz & rgbMask) == White) && ((vert & rgbMask) == White)) {
-                points.add(new Vector2D(current_x, current_y));
+                // Translate (current_x, current_z) to 2D coordinates with 
+                // the center of the image as origin (0, 0).
+                points.add(new Vector2D(current_x - x0, z0 - current_z));
             }
 
             for (final int[] direction : directions) {
                 final int next_x = current_x + direction[0];
-                final int next_y = current_y + direction[1];
+                final int next_y = current_z + direction[1];
 
                 if ((img.getRGB(next_x, next_y) & rgbMask) == White &&
-                    !(next_x == previous_x && next_y == previous_y)) {
+                    !(next_x == previous_x && next_y == previous_z)) {
                     previous_x = current_x;
-                    previous_y = current_y;
+                    previous_z = current_z;
                     current_x = next_x;
-                    current_y = next_y;
+                    current_z = next_y;
                     break;
                 }
             }
-        } while (!(current_x == initial_x && current_y == initial_y));
+        } while (!(current_x == initial_x && current_z == initial_z));
         return new Polygon<Vector2D>(points);
-    }
-
-
-    public static ArrayList<Segment<Vector2D>> getRasterizationSegments(View view, Line common_line) {
-        final ArrayList<Segment<Vector2D>> list = new ArrayList<>();
-
-        // Calculate the direction of the rasterization segments. To do so, we need to
-        // calculate the direction vector of a perpendicular line to the common line
-        // that also passes through a point of the projection plane (in this case, the
-        // camera position of the view).
-
-        final Vector3D q = common_line.getOrigin();
-        final Vector3D v = common_line.getDirection();
-
-        final Vector3D pq = view.camera.position.subtract(q);
-        final double t = pq.dotProduct(v)/v.dotProduct(v);
-        final Vector3D qPrime = q.add(v.scalarMultiply(t));
-        final Vector3D direction = qPrime.subtract(view.camera.position);
-
-        // Now that we have the direction of that perpendicular line, we need to know
-        // wich of Vx or Vz has also the same direction, and then iterate horizontally
-        // or vertically over the projection image pixels.
-
-        if (direction.crossProduct(view.camera.vx).equals(Vector3D.ZERO)) {
-            // vx x direction = (0, 0, 0) means the rasterization lines follow vx
-            // (horizontal) lines.
-            System.err.println("horizontal");
-        }
-        
-        else if (direction.crossProduct(view.camera.vz).equals(Vector3D.ZERO)) {
-            // vz x direction = (0, 0, 0) means the rasterization lines follow vx
-            // (vertical) lines.
-            System.err.println("vertical");
-        }
-
-        else { /* This must be unreachable */ }       
-        return list;
     }
 }
