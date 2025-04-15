@@ -9,29 +9,24 @@ import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import com.util.Images;
+import com.util.Polygon;
 import com.util.Segment;
 
 public class View {
 
-    public BufferedImage projection;
-    public ViewCamera camera;
-    public ArrayList<Segment<Vector2D>> edges;
-    public ArrayList<Vector2D> vertices;
+    public final Polygon<Vector2D> polygon;
+    public final ViewCamera camera;
 
-    public View(final String path) {
-        try {
-            this.projection = ImageIO.read(new File(path + "/plane.bmp"));
-            this.projection = Images.preprocess(this.projection);
-            this.camera = ViewCamera.deserializeFrom(path + "/camera.json");
-            this.vertices = new ArrayList<>();
-            this.vertices = new ArrayList<>();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
+    public View(final String path) throws IOException {
+        // Read the projection plane image and the camera data.
+        this.camera = ViewCamera.deserializeFrom(path + "/camera.json");
+        BufferedImage img = ImageIO.read(new File(path + "/plane.bmp"));
+        img = Images.getImageCountour(img);
+        img = Images.preprocess(img);
+        this.polygon = Images.getContourPolygon(img);    
     }
 
-    public static ArrayList<Segment<Vector2D>> getRasterizationSegments(View view, Line common_line) {
+    public ArrayList<Segment<Vector2D>> getRasterizationSegments(Line common_line) {
         final ArrayList<Segment<Vector2D>> list = new ArrayList<>();
 
         // Calculate the direction of the rasterization segments. To do so, we
@@ -42,24 +37,22 @@ public class View {
         final Vector3D q = common_line.getOrigin();
         final Vector3D v = common_line.getDirection();
 
-        final Vector3D pq = view.camera.position.subtract(q);
+        final Vector3D pq = this.camera.position.subtract(q);
         final double t = pq.dotProduct(v)/v.dotProduct(v);
         final Vector3D qPrime = q.add(v.scalarMultiply(t));
-        final Vector3D direction = qPrime.subtract(view.camera.position);
+        final Vector3D direction = qPrime.subtract(this.camera.position);
 
         // Now that we have the direction of that perpendicular line, we need to
         // know wich of Vx or Vz has also the same direction, and then iterate 
         // horizontally or vertically over the projection image pixels.
 
-        if (direction.crossProduct(view.camera.vx).equals(Vector3D.ZERO)) {
-            // vx x direction = (0, 0, 0) means the rasterization lines follow 
-            // vx (horizontal) lines.
+        if (direction.crossProduct(this.camera.vx).equals(Vector3D.ZERO)) {
+            // This means the rasterization lines follow (horizontal) lines.
             System.out.println("horizontal");
         }
         
-        else if (direction.crossProduct(view.camera.vz).equals(Vector3D.ZERO)) {
-            // vz x direction = (0, 0, 0) means the rasterization lines follow 
-            // vx (vertical) lines.
+        else if (direction.crossProduct(this.camera.vz).equals(Vector3D.ZERO)) {
+            // This means the rasterization lines follow (horizontal) lines.
             System.out.println("vertical");
         }
 
