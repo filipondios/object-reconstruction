@@ -146,4 +146,85 @@ public class TestsVatti {
         System.err.println(result.points);
         assertEquals(resultPoints, result.points);
     }
+
+    @Test
+    public void testClipLinePolygon() {
+        ArrayList<Vector2D> subjectPoints;
+        Polygon<Vector2D> subject;
+        ArrayList<Vector2D> clipPoints;
+        Polygon<Vector2D> clip;
+        Polygon<Vector2D> result;
+        ArrayList<Vector2D> resultPoints;
+        
+        // We can get the intersections of a line and and a polygon
+        // if we treat the line as a degenerate polygon with 2 sides.
+        // Test with a horizontal line that overlaps with a side of
+        // the subject polygon.
+
+        subjectPoints = new ArrayList<>(Arrays.asList(
+            new Vector2D(0, 1),
+            new Vector2D(0, 2),
+            new Vector2D(1, 2),
+            new Vector2D(1, 3),
+            new Vector2D(2, 3),
+            new Vector2D(2, 2),
+            new Vector2D(3, 2),
+            new Vector2D(3, 1),
+            new Vector2D(2, 1),
+            new Vector2D(2, 0),
+            new Vector2D(1, 0),
+            new Vector2D(1, 1)
+        ));
+
+        clipPoints = new ArrayList<>(Arrays.asList(
+            new Vector2D(Integer.MIN_VALUE, 3),
+            new Vector2D(Integer.MAX_VALUE, 3)
+        ));
+
+        resultPoints = new ArrayList<>(Arrays.asList(
+            new Vector2D(1, 3),
+            new Vector2D(2, 3)
+        ));
+
+        subject = new Polygon<>(subjectPoints);
+        clip = new Polygon<>(clipPoints);
+        result = VattiClipper.clip(subject, clip);
+        assertEquals(resultPoints, result.points);
+
+        // Now the same but overlapping 2 sides.
+
+        clipPoints = new ArrayList<>(Arrays.asList(
+            new Vector2D(Integer.MIN_VALUE, 2),
+            new Vector2D(Integer.MAX_VALUE, 2)
+        ));
+
+        resultPoints = new ArrayList<>(Arrays.asList(
+            new Vector2D(0, 2),
+            new Vector2D(1, 2),
+            new Vector2D(2, 2),
+            new Vector2D(3, 2)
+        ));
+
+        subject = new Polygon<>(subjectPoints);
+        clip = new Polygon<>(clipPoints);
+        result = VattiClipper.clip(subject, clip);
+        assertEquals(resultPoints, result.points);
+
+        // Now just a intersection, no overlapping.
+
+        clipPoints = new ArrayList<>(Arrays.asList(
+            new Vector2D(Integer.MIN_VALUE, 1.5),
+            new Vector2D(Integer.MAX_VALUE, 1.5)
+        ));
+
+        resultPoints = new ArrayList<>(Arrays.asList(
+            new Vector2D(0, 1.5),
+            new Vector2D(3, 1.5)
+        ));
+
+        subject = new Polygon<>(subjectPoints);
+        clip = new Polygon<>(clipPoints);
+        result = VattiClipper.clip(subject, clip);
+        assertEquals(resultPoints, result.points);
+    }
 } 
