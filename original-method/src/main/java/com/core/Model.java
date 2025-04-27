@@ -5,10 +5,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map.Entry;
+
 import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Polygon;
+
 import de.vandermeer.asciitable.AsciiTable;
 import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 
@@ -96,7 +103,49 @@ public class Model {
                     polygons = new ArrayList<>();
                     this.planes.put(plane, polygons);
                 }
+
+                polygon.add(polygon.get(0));
                 polygons.add(polygon);
+            }
+        }
+    }
+
+    public void refineModel() {
+        if (this.views.size() < 3)
+            return;
+
+        final GeometryFactory factory = new GeometryFactory();
+
+        for (int i = 2; i < this.views.size(); i++) {
+            final View view = this.views.get(i);
+
+            for (final Entry<Plane, ArrayList<ArrayList<Vector3D>>> entry : this.planes.entrySet()) {
+                final ArrayList<ArrayList<Vector3D>> refinedPolygons = new ArrayList<>();
+                final Plane plane = entry.getKey();
+                
+                for (ArrayList<Vector3D> polygon3d : entry.getValue()) {
+                    // Project and refine the current polygon via intersection
+                    final Coordinate[] coordinates = new Coordinate[polygon3d.size()];
+
+                    for (int j = 0; j < coordinates.length; j++)
+                        coordinates[j] =  view.realToPlanePoint(polygon3d.get(j));
+                        
+                    final Polygon polygon =  factory.createPolygon(coordinates);
+                    final Geometry intersection = view.polygon.intersection(polygon);
+
+                    if (intersection.isEmpty() || !(intersection instanceof Polygon))
+                        continue; // Discard the polygon from the list.
+
+                    // Traduce 2D intersection coordinates to 3D coordinates
+                    final ArrayList<Vector3D> refined = new ArrayList<>();
+
+                    for (final Coordinate point : ((Polygon) intersection).getCoordinates()) {
+                        final Vector3D real = view.planeToRealPoint(point);
+                        refined.add((Vector3D) plane.project(real));
+                    }
+                    refinedPolygons.add(refined);
+                }
+                this.planes.put(plane, refinedPolygons);
             }
         }
     }
