@@ -8,16 +8,14 @@ import java.util.HashMap;
 import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
-import com.util.Polygon;
-import com.util.Segment;
+import org.locationtech.jts.geom.LineString;
 import de.vandermeer.asciitable.AsciiTable;
 import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 
 public class Model {
 
     public ArrayList<View> views;
-    public HashMap<Plane, ArrayList<Polygon<Vector3D>>> planes;
+    public HashMap<Plane, ArrayList<ArrayList<Vector3D>>> planes;
     public String path;
 
     public Model(final String path) throws IOException {
@@ -38,100 +36,67 @@ public class Model {
             }) .forEach(this.views::add);
     }
 
-    public void initialReconstruction() {
-        if (this.views.size() < 2) {
-            // nothing to do
+    public void initialReconstruction(final double step) {
+        if (this.views.size() < 2)
             return;
-        }
 
-        View view1 = this.views.get(0);
-        View view2 = null;
+        final View view1 = this.views.get(0);
+        final View view2 = this.views.stream()
+            .skip(1).filter(view -> {
+                final Vector3D cross = view1.camera.vy.crossProduct(view.camera.vy); 
+                return cross.getNorm() > 1e-6;
+            }).findFirst().orElse(null);
 
-        for (int i = 1; i < this.views.size(); i++) {
-            final View view = this.views.get(i);
-            
-            if (!view1.camera.vy.crossProduct(view.camera.vy)
-                .equals(Vector3D.ZERO)) {
-                view2 = view;
-                break;
-            }
-        }
-
-        if (view2 == null) {
-            // nothing to do
+        if (view2 == null)
             return;
-        }
-
-        // Now with two views with no parallell view planes, we can proceed.
-        // First, we must get the common line between both view planes by 
-        // intersecting them.
-
-        final Line commonLine = (new Plane(view1.camera.position, view1.camera.vy, 1e-10))
-            .intersection(new Plane(view2.camera.position, view2.camera.vy, 1e-10));
         
-        // Now we have to calculate the set of rasterization segments in each 
-        // view image plane. Those segments will be used to make contour 
-        // generation lines.
+        // Find the common line between views
+        final Plane plane1 = new Plane(view1.camera.position, view1.camera.vy, 1e-6);
+        final Plane plane2 = new Plane(view2.camera.position, view2.camera.vy, 1e-6);
+        final Line commonLine = plane1.intersection(plane2);
 
-        final ArrayList<Segment<Vector2D>> rasterizationSegments1 = null;
-        final ArrayList<Segment<Vector2D>> rasterizationSegments2 = null;
-        
-        // The last step is to intersect all the possible pairs of contour 
-        // generation lines produced by each rasterizatrion segment in both 
-        // views.
+        // Calculate both views rasterization lines
+        final ArrayList<LineString> segments1 = view1.rasterizationSegments(commonLine, step);
+        final ArrayList<LineString> segments2 = view2.rasterizationSegments(commonLine, step);
 
-        for (final Segment<Vector2D> segment1 : rasterizationSegments1) {
+        for (final LineString segment1 : segments1) {
+            // Contour generation lines for view1 segment
+            final Vector3D src1 = view1.planeToRealPoint(segment1.getCoordinateN(0));
+            final Vector3D dst1 = view1.planeToRealPoint(segment1.getCoordinateN(1));
+            final Line contourGenV1_1 = new Line(src1, src1.add(view1.camera.vy), 1e-6);
+            final Line contourGenV1_2 = new Line(dst1, dst1.add(view1.camera.vy), 1e-6);
 
-            // Obtener las lineas generadoras de contorno a partir de los
-            // extremos del segmento de rasterizacion perteneciente a la vista1.
+            // Create plane containing the segment and parallel to common line
+            final Plane plane = new Plane(src1, commonLine.getDirection(), 1e-6);
+            ArrayList<ArrayList<Vector3D>> polygons = this.planes.get(plane);
 
-            final Vector3D src1 = view1.planeToRealPoint(segment1.src);
-            final Vector3D dst1 = view1.planeToRealPoint(segment1.dst);
-            final Line contourGenV1_1 = new Line(src1, src1.add(view1.camera.vy), 1e-10);
-            final Line contourGenV1_2 = new Line(dst1, dst1.add(view1.camera.vy), 1e-10);
+            for (final LineString segment2 : segments2) {
+                // Convert segment2 points using view2 (not view1!)
+                final Vector3D src2 = view2.planeToRealPoint(segment2.getCoordinateN(0));
+                final Vector3D dst2 = view2.planeToRealPoint(segment2.getCoordinateN(1));
 
-            // Obtener la lista de poligonos del plano en el que esta contenido
-            // el segmento de rasterizacion actual.            
-            
-            final Plane plane = new Plane(src1, commonLine.getDirection(), 1e-10);
-            ArrayList<Polygon<Vector3D>> polygons = this.planes.get(plane);
-
-            for (final Segment<Vector2D> segment2 : rasterizationSegments2) {
-
-                // Obtener las lineas generadoras de contorno a partir de los
-                // extremos del segmento de rasterizacion perteneciente a la 
-                // vista2.
- 
-                final Vector3D src2 = view1.planeToRealPoint(segment2.src);
-                final Vector3D dst2 = view1.planeToRealPoint(segment2.dst);
-            
-                if (!(plane.contains(src2) && plane.contains(dst2))) {
-                    // Omitir el segmento si no es coplanar
+                // Skip if segment is not in the plane (coplanar check)
+                if (Math.abs(plane.getOffset(src2)) > 1e-6) {
                     continue;
                 }
 
-                final Line contourGenV2_1 = new Line(src2, src2.add(view2.camera.vy), 1e-10);
-                final Line contourGenV2_2 = new Line(dst2, dst2.add(view2.camera.vy), 1e-10);
+                // Contour generation lines for view2 segment
+                final Line contourGenV2_1 = new Line(src2, src2.add(view2.camera.vy), 1e-6);
+                final Line contourGenV2_2 = new Line(dst2, dst2.add(view2.camera.vy), 1e-6);
 
-                // Calcular la interseccion de las lineas generadoras de 
-                // contorno de las vistas 1 y 2, que resultan en cuatro 
-                // intersecciones en total. Los puntos de interseccion definen 
-                // un nuevo poligono, concretamente un paralelogramo.
-                
-                final ArrayList<Vector3D> points = new ArrayList<>(4);
-                points.add(contourGenV1_1.intersection(contourGenV2_1));
-                points.add(contourGenV1_1.intersection(contourGenV2_2));
-                points.add(contourGenV1_2.intersection(contourGenV2_1));
-                points.add(contourGenV1_2.intersection(contourGenV2_2));
-                final Polygon<Vector3D> polygon = new Polygon<>(points);
+                // Calculate all 4 intersection points and create a polygon.
+                final ArrayList<Vector3D> polygon = new ArrayList<>(Arrays.asList(
+                    contourGenV1_1.intersection(contourGenV2_1),
+                    contourGenV1_1.intersection(contourGenV2_2),
+                    contourGenV1_2.intersection(contourGenV2_2),
+                    contourGenV1_2.intersection(contourGenV2_1)
+                ));
 
                 if (polygons == null) {
                     polygons = new ArrayList<>();
-                    polygons.add(polygon);
                     this.planes.put(plane, polygons);
-                } else {
-                    polygons.add(polygon);
                 }
+                polygons.add(polygon);
             }
         }
     }

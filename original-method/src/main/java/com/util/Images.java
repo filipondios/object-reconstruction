@@ -5,7 +5,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.util.ArrayList;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
 
 public class Images {
 
@@ -89,8 +91,8 @@ public class Images {
      * @param img An image with the object's contour line.
      * @return Polygonal line wich defines the object's contour.
      */
-    public static Polygon<Vector2D> getContourPolygon(final BufferedImage img) {
-        final ArrayList<Vector2D> points = new ArrayList<>();
+    public static Polygon getContourPolygon(final BufferedImage img) {
+        final ArrayList<Coordinate> points = new ArrayList<>();
         int initial_x = -1, initial_z = 1;
 
         // Get the first vertex of the object contour.
@@ -108,8 +110,8 @@ public class Images {
         int previous_x = initial_x, previous_z = initial_z;
         int current_x = initial_x, current_z = initial_z;
 
-        final int z0 = img.getHeight() >> 1;
-        final int x0 = img.getWidth()  >> 1;
+        final double z0 = img.getHeight()/2.0;
+        final double x0 = img.getWidth()/2.0;
    
         do {
             // Verify if the current pixel is a vertex.
@@ -119,7 +121,7 @@ public class Images {
             if (((horz & rgbMask) == White) && ((vert & rgbMask) == White)) {
                 // Translate (current_x, current_z) to 2D coordinates with 
                 // the center of the image as origin (0, 0).
-                points.add(new Vector2D(current_x - x0, z0 - current_z));
+                points.add(new Coordinate(current_x - x0, z0 - current_z));
             }
 
             for (final int[] direction : directions) {
@@ -136,6 +138,9 @@ public class Images {
                 }
             }
         } while (!(current_x == initial_x && current_z == initial_z));
-        return new Polygon<Vector2D>(points);
+        
+        final GeometryFactory factory = new GeometryFactory();
+        points.add(points.get(0)); // close the polygon
+        return factory.createPolygon(points.toArray(new Coordinate[0]));
     }
 }
