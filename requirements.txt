@@ -1,0 +1,5 @@
+shapely
+sympy
+raylib
+opencv-python
+tabulate

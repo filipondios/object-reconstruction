@@ -1,4 +1,1 @@
-target/
-.vs/
-.vscode/
-*-result*
+__pycache__
