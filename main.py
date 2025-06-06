@@ -10,6 +10,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--path', type=str, required=True, help='Model path.')
     parser.add_argument('-c', '--complexity', type=str, required=True, help='Reconstruction algorithm complexity. Options: complex, simple.')
     parser.add_argument('-s', '--step', type=float, required=False, help='Rasterization segments separation (Used in the complex algorithm).')
+    parser.add_argument('-r', '--resolution', type=int, required=False, help='Voxel resolution (Used in the simple algorithm). Default: 64')
     args = parser.parse_args()
 
 
@@ -21,7 +22,10 @@ if __name__ == "__main__":
         model = ComplexModel(args.path, step)
 
     elif args.complexity == 'simple':
-        model = SimpleModel(args.path)
+        if args.resolution is None:
+            resolution = 8
+        else: resolution = args.resolution
+        model = SimpleModel(args.path, resolution)
 
     render = ModelRender(model)
     render.initialize()
