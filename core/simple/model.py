@@ -1,135 +1,126 @@
-from sympy import Point3D, Matrix, Line3D
+import numpy as np
+import pyray as rl
 from core.base_model import BaseModel
 from core.simple.view import View
-import pyray as rl
 
 
 class Model(BaseModel):
 
-    vertices: list[Point3D]
-    edges: list[Point3D, Point3D]
+    voxel_space: np.ndarray
+    resolution: int
+    bounds: tuple
+    surface_points: list
+    space_dimensions: tuple
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, resolution: int):
         super().__init__(path, View)
-        self.views = sorted(self.views, key=lambda v: len(v.vertices), reverse=True)
-        self.vertices = []
-        self.edges = []
-        print('[+] Starting initial reconstruction')
-        self.initial_reconstruction()
-        print('[+] Refining model')
-        self.refine_model()
-        print('[+] Generating edges.')
+        self.resolution = resolution
+        self.surface_points = []
+        self.reconstruct_model()
         self.generate_edges()
 
 
-    def initial_reconstruction(self, args=None):
-        if len(self.views) < 2:
-            return
+    def calculate_world_bounds(self):
+        """ Calculate the bounding box that encompasses all views """
+        # remember, view bounds = (minXi, minZi, maxXi, maxZi)
+        bounds = list(self.views[0].bounds)
 
-        view1 = self.views[0]
-        vy1 = Matrix(view1.vy)
-        view2 = next((view for view in self.views[1:]
-            if Matrix(view.vy).cross(vy1).norm() > 1e-6), None)
+        for view in self.views[1:]:
+            view_bounds = view.bounds
+            bounds[0] = min(bounds[0], view_bounds[0])
+            bounds[1] = min(bounds[1], view_bounds[1])
+            bounds[2] = max(bounds[2], view_bounds[2])
+            bounds[3] = max(bounds[3], view_bounds[3])
         
-        if view2 is None:
-            return
-        
-        print('[+] Using ' + view1.name + ' and ' + view2.name 
-              + ' for initial reconstruction.')
-
-        for vertex1 in view1.vertices:
-            # Try to intersect pairs of view vertex lines
-            vertex1 = view1.plane_to_real(vertex1)
-            line1 = Line3D(vertex1, direction_ratio=view1.vy)
-
-            for vertex2 in view2.vertices:
-                vertex2 = view2.plane_to_real(vertex2)
-                line2 = Line3D(vertex2, direction_ratio=view2.vy)
-                intersection = line1.intersect(line2)
-                
-                if not intersection.is_empty:
-                    self.vertices.append(intersection.args[0])
+        # Returns the final box defining tuple (minX, minY, minZ, maxX, maxY, maxZ)
+        return (bounds[0], bounds[2], bounds[1], bounds[3], bounds[1], bounds[3])
 
 
-    def refine_model(self):
-        for view in self.views[2:]:
-            print('[+] Using ' + view.name + ' to refine.')
-            to_remove = []
+    def reconstruct_model(self):
+        """ Reconstructs the model directly """
+        self.voxel_space = np.ones((self.resolution,)*3, dtype=bool)
+        self.bounds = self.calculate_world_bounds()
 
-            for (index, vertex) in enumerate(self.vertices):
-                # Project the vertex into the view
-                point = view.real_to_plane(vertex)
-                point = view.plane_to_image(point)
+        for view in self.views:
+            # Merge each view voxel space with the model's
+            print(f'[+] Using {view.name} to reconstruct.')
+            self.voxel_space &= self.project_view_to_voxels(view)
 
-                # See if the corresponding pixel in the image plane
-                # is a background pixel (white)
-                if view.projection[point[1], point[0]] == 0xff:
-                    to_remove.append(index)
 
-            for index in reversed(to_remove):
-                del self.vertices[index]
+    def project_view_to_voxels(self, view: View):
+        voxels = np.zeros((self.resolution,) * 3, dtype=bool)
+        get = lambda a, b, i: a + i * (b - a) / (self.resolution - 1)
+        d = view.get_view_direction()
+
+        for i in range(self.resolution):
+            for j in range(self.resolution):
+                if d == 'xy':
+                    wx = get(self.bounds[0], self.bounds[1], i)
+                    wy = get(self.bounds[2], self.bounds[3], j)
+                    if view.is_point_inside_contour(view.real_to_plane([wx, wy, 0])):
+                        voxels[i, j, :] = True
+                elif d == 'xz':
+                    wx = get(self.bounds[0], self.bounds[1], i)
+                    wz = get(self.bounds[4], self.bounds[5], j)
+                    if view.is_point_inside_contour(view.real_to_plane([wx, 0, wz])):
+                        voxels[i, :, j] = True
+                elif d == 'yz':
+                    wy = get(self.bounds[2], self.bounds[3], i)
+                    wz = get(self.bounds[4], self.bounds[5], j)
+                    if view.is_point_inside_contour(view.real_to_plane([0, wy, wz])):
+                        voxels[:, i, j] = True
+        return voxels
 
 
     def generate_edges(self):
-        x_axis = Point3D(1,0,0)
-        y_axis = Point3D(0,1,0)
-        z_axis = Point3D(0,0,1)
+        faces = [
+            (1, 0, 0), (-1, 0, 0),
+            (0, 1, 0), (0, -1, 0),
+            (0, 0, 1), (0, 0, -1)
+        ]
+        edge_set = set()
+        R = self.resolution
 
-        for vertex in self.vertices:
-            # Calculate a minumun distance vertex to the actual in
-            # all of the directions (x, y, z).
-            x_line = Line3D(vertex, direction_ratio=x_axis)
-            y_line = Line3D(vertex, direction_ratio=y_axis)
-            z_line = Line3D(vertex, direction_ratio=z_axis)
-            min_x = None
-            min_y = None
-            min_z = None
+        for x in range(R):
+            for y in range(R):
+                for z in range(R):
+                    if not self.voxel_space[x, y, z]: continue
+                    for dx, dy, dz in faces:
+                        nx, ny, nz = x + dx, y + dy, z + dz
+                        if 0 <= nx < R and 0 <= ny < R and 0 <= nz < R and self.voxel_space[nx, ny, nz]:
+                            continue
+                        for i in range(4):
+                            a, b = self.face_edge_corners(x, y, z, (dx, dy, dz), i)
+                            edge = tuple(sorted((tuple(a), tuple(b))))
+                            edge_set.add(edge)
 
-            for other in self.vertices:
-                if other == vertex:
-                    continue
-
-                if (x_line.contains(other) and (other.x > vertex.x
-                    and (min_x is None or other.x < min_x.x))):
-                    min_x = other
-
-                if (y_line.contains(other) and (other.y > vertex.y
-                    and (min_y is None or other.y < min_y.y))):
-                    min_y = other
-
-                if (z_line.contains(other) and (other.z > vertex.z
-                    and (min_z is None or other.z < min_z.z))):
-                    min_z = other
-
-            # Not all minimum distance vertices form an edge with
-            # the current vertex in the real model.
-            if self.is_valid_edge(vertex, min_x, x_axis): 
-                self.edges.append((vertex, min_x))
-
-            if self.is_valid_edge(vertex, min_y, y_axis): 
-                self.edges.append((vertex, min_y))
-
-            if self.is_valid_edge(vertex, min_z, z_axis): 
-                self.edges.append((vertex, min_z))
+        self.edges = [(self._voxel_to_world(a), self._voxel_to_world(b)) for a, b in edge_set]
+        print(f'[+] Generated {len(self.edges)} surface edges')
 
 
-    def is_valid_edge(self, src: Point3D, dst: Point3D, axis: Point3D) -> bool:
-        # Return false if the projection of the first point of the line between
-        # both points is a background pixel (white) is some view.
+    def face_edge_corners(self, x, y, z, normal, idx):
+        offsets = {
+            (1, 0, 0):  [[1,0,0],[1,1,0],[1,1,1],[1,0,1]],
+            (-1, 0, 0): [[0,0,0],[0,0,1],[0,1,1],[0,1,0]],
+            (0, 1, 0):  [[0,1,0],[0,1,1],[1,1,1],[1,1,0]],
+            (0, -1, 0): [[0,0,0],[1,0,0],[1,0,1],[0,0,1]],
+            (0, 0, 1):  [[0,0,1],[1,0,1],[1,1,1],[0,1,1]],
+            (0, 0, -1): [[0,0,0],[0,1,0],[1,1,0],[1,0,0]]
+        }
+        corners = offsets[normal]
+        return [[x+a, y+b, z+c] for a,b,c in [corners[idx], corners[(idx+1)%4]]]
 
-        if dst is None: return False
-        next = src + axis
 
-        for view in self.views:
-            projected = view.real_to_plane(next)
-            point = view.plane_to_image(projected)
-            pixel = view.projection[point[1], point[0]]
-            if pixel == 0xff: return False            
-        return True
+    def _voxel_to_world(self, coord):
+        x, y, z = coord
+        fx = lambda a, b, i: a + i * (b - a) / self.resolution
+        return [fx(self.bounds[0], self.bounds[1], x),
+                fx(self.bounds[2], self.bounds[3], y),
+                fx(self.bounds[4], self.bounds[5], z)]
 
 
     def drawModel(self):
-        for (src, dst) in self.edges:
-            vsrc = rl.Vector3(src[0], src[2], src[1])
-            vdst = rl.Vector3(dst[0], dst[2], dst[1])
-            rl.draw_line_3d(vsrc, vdst, rl.WHITE)
+        for a, b in self.edges:
+            va = rl.Vector3(a[0], a[2], a[1])
+            vb = rl.Vector3(b[0], b[2], b[1])
+            rl.draw_line_3d(va, vb, rl.WHITE)
