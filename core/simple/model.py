@@ -73,54 +73,26 @@ class Model(BaseModel):
 
 
     def generate_edges(self):
-        faces = [
-            (1, 0, 0), (-1, 0, 0),
-            (0, 1, 0), (0, -1, 0),
-            (0, 0, 1), (0, 0, -1)
-        ]
-        edge_set = set()
-        R = self.resolution
+        self.cubes = []
+        fx = lambda a, b, i: a + (i + 0.5) * (b - a) / self.resolution
+        size_x = (self.bounds[1] - self.bounds[0]) / self.resolution
+        size_y = (self.bounds[3] - self.bounds[2]) / self.resolution
+        size_z = (self.bounds[5] - self.bounds[4]) / self.resolution
 
-        for x in range(R):
-            for y in range(R):
-                for z in range(R):
-                    if not self.voxel_space[x, y, z]: continue
-                    for dx, dy, dz in faces:
-                        nx, ny, nz = x + dx, y + dy, z + dz
-                        if 0 <= nx < R and 0 <= ny < R and 0 <= nz < R and self.voxel_space[nx, ny, nz]:
-                            continue
-                        for i in range(4):
-                            a, b = self.face_edge_corners(x, y, z, (dx, dy, dz), i)
-                            edge = tuple(sorted((tuple(a), tuple(b))))
-                            edge_set.add(edge)
-
-        self.edges = [(self._voxel_to_world(a), self._voxel_to_world(b)) for a, b in edge_set]
-        print(f'[+] Generated {len(self.edges)} surface edges')
-
-
-    def face_edge_corners(self, x, y, z, normal, idx):
-        offsets = {
-            (1, 0, 0):  [[1,0,0],[1,1,0],[1,1,1],[1,0,1]],
-            (-1, 0, 0): [[0,0,0],[0,0,1],[0,1,1],[0,1,0]],
-            (0, 1, 0):  [[0,1,0],[0,1,1],[1,1,1],[1,1,0]],
-            (0, -1, 0): [[0,0,0],[1,0,0],[1,0,1],[0,0,1]],
-            (0, 0, 1):  [[0,0,1],[1,0,1],[1,1,1],[0,1,1]],
-            (0, 0, -1): [[0,0,0],[0,1,0],[1,1,0],[1,0,0]]
-        }
-        corners = offsets[normal]
-        return [[x+a, y+b, z+c] for a,b,c in [corners[idx], corners[(idx+1)%4]]]
-
-
-    def _voxel_to_world(self, coord):
-        x, y, z = coord
-        fx = lambda a, b, i: a + i * (b - a) / self.resolution
-        return [fx(self.bounds[0], self.bounds[1], x),
-                fx(self.bounds[2], self.bounds[3], y),
-                fx(self.bounds[4], self.bounds[5], z)]
-
+        for x in range(self.resolution):
+            for y in range(self.resolution):
+                for z in range(self.resolution):
+                    if not self.voxel_space[x, y, z]:
+                        continue
+                    cx = fx(self.bounds[0], self.bounds[1], x)
+                    cy = fx(self.bounds[2], self.bounds[3], y)
+                    cz = fx(self.bounds[4], self.bounds[5], z)
+                    self.cubes.append(((cx, cy, cz), (size_x, size_y, size_z)))
+    
 
     def drawModel(self):
-        for a, b in self.edges:
-            va = rl.Vector3(a[0], a[2], a[1])
-            vb = rl.Vector3(b[0], b[2], b[1])
-            rl.draw_line_3d(va, vb, rl.WHITE)
+        for (cx, cy, cz), (sx, sy, sz) in self.cubes:
+            center = rl.Vector3(cx, cz, cy)
+            size = rl.Vector3(sx, sz, sy)
+            rl.draw_cube(center, size.x, size.y, size.z, rl.GRAY)
+            rl.draw_cube_wires(center, size.y, size.y, size.z, rl.WHITE)
