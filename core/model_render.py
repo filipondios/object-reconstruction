@@ -96,7 +96,7 @@ class ModelRender:
             rl.clear_background(rl.BLACK)            
             rl.begin_mode_3d(self.camera)
 
-            self.model.drawModel()
+            self.model.draw_model()
             
             rl.end_mode_3d()
             rl.draw_text(
