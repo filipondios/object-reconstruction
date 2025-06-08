@@ -1,7 +1,6 @@
 from pathlib import Path
 from shapely.geometry import Point
 from core.complex.view import View as ComplexView
-import numpy as np
 from sympy import Matrix
 
 
@@ -28,12 +27,3 @@ class View(ComplexView):
         dot_products = {k: abs(vy.dot(v)) for k, v in axes.items()}
         axis = max(dot_products, key=dot_products.get)
         return { 'x': 'yz', 'y': 'xz', 'z': 'xy' }[axis]
-
-
-    def project_to_voxel_space(self, voxel_bounds, resolution):
-        """Transform contour points to voxel space coordinates"""
-        # Map from world coordinates to voxel indices
-        world_min = np.array([voxel_bounds[0], voxel_bounds[2]])
-        world_max = np.array([voxel_bounds[1], voxel_bounds[3]])
-        scale = (resolution - 1) / (world_max - world_min)
-        return ((self.contour_points - world_min) * scale).astype(int)
