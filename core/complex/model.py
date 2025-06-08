@@ -94,7 +94,7 @@ class Model(BaseModel):
                 self.planes[plane] = refined_polygons
 
 
-    def drawModel(self):
+    def draw_model(self):
         for polygons in self.planes.values():
             for poly in polygons:
                 for i in range(len(poly)):

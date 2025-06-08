@@ -17,7 +17,7 @@ class Model(BaseModel):
         self.resolution = resolution
         self.surface_points = []
         self.reconstruct_model()
-        self.generate_edges()
+        self.generate_surface()
 
 
     def calculate_world_bounds(self):
@@ -44,11 +44,10 @@ class Model(BaseModel):
         for view in self.views:
             # Merge each view voxel space with the model's
             print(f'[+] Using {view.name} to reconstruct.')
-            self.voxel_space &= self.project_view_to_voxels(view)
+            self.project_view_to_voxels(view)
 
 
     def project_view_to_voxels(self, view: View):
-        voxels = np.zeros((self.resolution,) * 3, dtype=bool)
         get = lambda a, b, i: a + i * (b - a) / (self.resolution - 1)
         d = view.get_view_direction()
 
@@ -57,27 +56,27 @@ class Model(BaseModel):
                 if d == 'xy':
                     wx = get(self.bounds[0], self.bounds[1], i)
                     wy = get(self.bounds[2], self.bounds[3], j)
-                    if view.is_point_inside_contour(view.real_to_plane([wx, wy, 0])):
-                        voxels[i, j, :] = True
+                    if not view.is_point_inside_contour(view.real_to_plane((wx, wy, 0))):
+                        self.voxel_space[i, j, :] = False
                 elif d == 'xz':
                     wx = get(self.bounds[0], self.bounds[1], i)
                     wz = get(self.bounds[4], self.bounds[5], j)
-                    if view.is_point_inside_contour(view.real_to_plane([wx, 0, wz])):
-                        voxels[i, :, j] = True
+                    if not view.is_point_inside_contour(view.real_to_plane((wx, 0, wz))):
+                        self.voxel_space[i, :, j] = False
                 elif d == 'yz':
                     wy = get(self.bounds[2], self.bounds[3], i)
                     wz = get(self.bounds[4], self.bounds[5], j)
-                    if view.is_point_inside_contour(view.real_to_plane([0, wy, wz])):
-                        voxels[:, i, j] = True
-        return voxels
+                    if not view.is_point_inside_contour(view.real_to_plane((0, wy, wz))):
+                        self.voxel_space[:, i, j] = False
 
 
-    def generate_edges(self):
+    def generate_surface(self):
         self.cubes = []
-        fx = lambda a, b, i: a + (i + 0.5) * (b - a) / self.resolution
+        fx = lambda a, b, i: a + i * (b - a) / self.resolution
         size_x = (self.bounds[1] - self.bounds[0]) / self.resolution
         size_y = (self.bounds[3] - self.bounds[2]) / self.resolution
         size_z = (self.bounds[5] - self.bounds[4]) / self.resolution
+        self.cube_size = (size_x, size_y, size_z)
 
         for x in range(self.resolution):
             for y in range(self.resolution):
@@ -87,12 +86,12 @@ class Model(BaseModel):
                     cx = fx(self.bounds[0], self.bounds[1], x)
                     cy = fx(self.bounds[2], self.bounds[3], y)
                     cz = fx(self.bounds[4], self.bounds[5], z)
-                    self.cubes.append(((cx, cy, cz), (size_x, size_y, size_z)))
-    
+                    self.cubes.append((cx, cy, cz))
 
-    def drawModel(self):
-        for (cx, cy, cz), (sx, sy, sz) in self.cubes:
+
+    def draw_model(self):
+        size = self.cube_size
+        for (cx, cy, cz) in self.cubes:
             center = rl.Vector3(cx, cz, cy)
-            size = rl.Vector3(sx, sz, sy)
-            rl.draw_cube(center, size.x, size.y, size.z, rl.GRAY)
-            rl.draw_cube_wires(center, size.y, size.y, size.z, rl.WHITE)
+            rl.draw_cube(center, size[0], size[1], size[2], rl.WHITE)
+            rl.draw_cube_wires(center, size[0], size[1], size[2], rl.BLACK)

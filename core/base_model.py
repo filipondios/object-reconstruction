@@ -29,14 +29,14 @@ class BaseModel:
         pass
 
     @abstractmethod
-    def generate_edges(self):
+    def generate_surface(self):
         # After all the steps above,
         # generate the surface of the
         # reconstructed object.
         pass
 
     @abstractmethod
-    def drawModel(self):
+    def draw_model(self):
         # Draw the model in a 3D space
         pass
 

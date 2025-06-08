@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from core.complex.model import Model as ComplexModel
 from core.simple.model import Model as SimpleModel
-from core.modelRender import ModelRender
+from core.model_render import ModelRender
 
 if __name__ == "__main__":
 
