@@ -16,10 +16,17 @@ class Model(BaseModel):
         super().__init__(path, View)
         self.resolution = resolution
         self.surface_points = []
-        self.reconstruct_model()
+        self.initial_reconstruction()
+        self.refine_model()
         self.generate_surface()
 
 
+    def initial_reconstruction(self, _=None):
+        """ Initializes the voxel space """
+        self.voxel_space = np.ones((self.resolution)*3, dtype=bool)
+        self.bounds = self.calculate_world_bounds()
+
+    
     def calculate_world_bounds(self):
         """ Calculate the bounding box that encompasses all views """
         # remember, view bounds = (minXi, minZi, maxXi, maxZi)
@@ -36,11 +43,8 @@ class Model(BaseModel):
         return (bounds[0], bounds[2], bounds[1], bounds[3], bounds[1], bounds[3])
 
 
-    def reconstruct_model(self):
+    def refine_model(self):
         """ Reconstructs the model directly """
-        self.voxel_space = np.ones((self.resolution,)*3, dtype=bool)
-        self.bounds = self.calculate_world_bounds()
-
         for view in self.views:
             # Merge each view voxel space with the model's
             print(f'[+] Using {view.name} to reconstruct.')
