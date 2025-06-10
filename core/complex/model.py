@@ -12,10 +12,13 @@ class Model(BaseModel):
     def __init__(self, path: str, step: float):
         super().__init__(path, View)
         self.planes = {}
+        self.edges = []
         print('[+] Starting initial reconstruction')
         self.initial_reconstruction(step)
         print('[+] Refining model')
         self.refine_model()
+        print('[+] Generating surface')
+        self.generate_surface()
 
 
     def initial_reconstruction(self, step: float):
@@ -30,12 +33,12 @@ class Model(BaseModel):
                
         if view2 is None:
             return
-       
+
         # Find the common line between views
         plane1 = Plane(view1.origin, view1.vy)
         plane2 = Plane(view2.origin, view2.vy)
         common_line = plane1.intersection(plane2)[0]
-        
+
         # Calculate both views rasterization lines
         segments1 = view1.rasterization_segments(common_line, step)
         segments2 = view2.rasterization_segments(common_line, step)
@@ -94,6 +97,37 @@ class Model(BaseModel):
                 self.planes[plane] = refined_polygons
 
 
+    def generate_surface(self):
+        """ Generates the surface triangulation structure """
+        # Sort the planes using the normal axis
+        plane, _ = next(iter(self.planes.items()))
+        normal = plane.normal_vector
+        planes = list(self.planes.items())
+       
+        if normal[0] != 0: planes.sort(key=lambda pair: pair[0].p1.x)
+        elif normal[1] != 0: planes.sort(key=lambda pair: pair[0].p1.y)
+        elif normal[2] != 0: planes.sort(key=lambda pair: pair[0].p1.z)
+
+        # Iterate the collection by pairs of planes
+        for ((_, poligons1), (_, poligons2)) in zip(planes, planes[1:]):
+            if len(poligons1) == 1 and len(poligons2) == 1:
+                # Case A: Both planes have 1 polygon
+                self.case_a_triangulate(poligons1[0], poligons2[0])
+            else: 
+                # Case B: One of the planes has more that 1 polygon
+                self.case_b_triangulate(poligons1, poligons2)
+
+
+    def case_a_triangulate(pl1: list[Point3D], pl2: list[Point3D]):
+        """ Calculates the triangulation for case A """
+        pass
+
+
+    def case_b_triangulate(pls1: list[list[Point3D]], pls2: list[list[Point3D]]):
+        """ Calculates the triangulation for case B """
+        pass
+
+
     def draw_model(self):
         for polygons in self.planes.values():
             for poly in polygons:
@@ -102,4 +136,4 @@ class Model(BaseModel):
                     b = poly[(i + 1) % len(poly)]
                     va = rl.Vector3(a[0], a[2], a[1])
                     vb = rl.Vector3(b[0], b[2], b[1])
-                    rl.draw_line_3d(va, vb, rl.WHITE)                                                                    
+                    rl.draw_line_3d(va, vb, rl.WHITE)
