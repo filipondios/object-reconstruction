@@ -15,13 +15,13 @@ class BaseModel:
         print(self)
 
     @abstractmethod
-    def initial_reconstruction(self, args=None):
+    def initial_reconstruction(self, args=None) -> None:
         # Generate a first version of
         # the model using two views.
         pass
 
     @abstractmethod
-    def refine_model(self):
+    def refine_model(self) -> None:
         # Using the rest of views of 
         # the model, generate a more
         # accurate version of the 
@@ -29,18 +29,18 @@ class BaseModel:
         pass
 
     @abstractmethod
-    def generate_surface(self):
+    def generate_surface(self) -> None:
         # After all the steps above,
         # generate the surface of the
         # reconstructed object.
         pass
 
     @abstractmethod
-    def draw_model(self):
+    def draw_model(self) -> None:
         # Draw the model in a 3D space
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         fmt = lambda p: f"({p.x}, {p.y}, {p.z})"
         data = [[view.name, 
             fmt(view.origin),

@@ -6,28 +6,28 @@ from core.simple.view import View
 
 class Model(BaseModel):
 
-    voxel_space: np.ndarray
     resolution: int
-    bounds: tuple
-    surface_points: list
-    space_dimensions: tuple
+    voxel_space: np.ndarray[np.bool_]
+    bounds: tuple[float, float, float, float, float, float]
+    cubes: list[tuple[float, float, float]]
+    cube_size: tuple[float, float, float]
 
     def __init__(self, path: str, resolution: int):
         super().__init__(path, View)
         self.resolution = resolution
-        self.surface_points = []
+        self.cubes = []
         self.initial_reconstruction()
         self.refine_model()
         self.generate_surface()
 
 
-    def initial_reconstruction(self, _=None):
+    def initial_reconstruction(self, _=None) -> None:
         """ Initializes the voxel space """
-        self.voxel_space = np.ones((self.resolution)*3, dtype=bool)
+        self.voxel_space = np.ones((self.resolution,)*3, dtype=bool)
         self.bounds = self.calculate_space_bounds()
 
 
-    def calculate_space_bounds(self):
+    def calculate_space_bounds(self) -> Tuple[float, float, float, float, float, float]:
         """ Calculate the bounding box that encompasses all views """
         # remember, view bounds = (minXi, minZi, maxXi, maxZi)
         bounds = list(self.views[0].bounds)
@@ -43,7 +43,7 @@ class Model(BaseModel):
         return (bounds[0], bounds[2], bounds[1], bounds[3], bounds[1], bounds[3])
 
 
-    def refine_model(self):
+    def refine_model(self) -> None:
         """ Reconstructs the model directly """
         for view in self.views:
             # Merge each view voxel space with the model's
@@ -51,7 +51,7 @@ class Model(BaseModel):
             self.project_view_to_voxels(view)
 
 
-    def project_view_to_voxels(self, view: View):
+    def project_view_to_voxels(self, view: View) -> None:
         get = lambda a, b, i: a + i * (b - a) / (self.resolution - 1)
         d = view.get_view_direction()
 
@@ -74,8 +74,7 @@ class Model(BaseModel):
                         self.voxel_space[:, i, j] = False
 
 
-    def generate_surface(self):
-        self.cubes = []
+    def generate_surface(self) -> None:
         fx = lambda a, b, i: a + i * (b - a) / self.resolution
         size_x = (self.bounds[1] - self.bounds[0]) / self.resolution
         size_y = (self.bounds[3] - self.bounds[2]) / self.resolution
@@ -93,7 +92,7 @@ class Model(BaseModel):
                     self.cubes.append((cx, cy, cz))
 
 
-    def draw_model(self):
+    def draw_model(self) -> None:
         size = self.cube_size
         for (cx, cy, cz) in self.cubes:
             center = rl.Vector3(cx, cz, cy)

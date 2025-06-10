@@ -6,7 +6,7 @@ from sympy import Matrix
 
 class View(ComplexView):
 
-    bounds: tuple
+    bounds: tuple[float, float, float, float]
 
     def __init__(self, path: Path):
         super().__init__(path)
