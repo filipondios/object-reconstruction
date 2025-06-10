@@ -24,10 +24,10 @@ class Model(BaseModel):
     def initial_reconstruction(self, _=None):
         """ Initializes the voxel space """
         self.voxel_space = np.ones((self.resolution)*3, dtype=bool)
-        self.bounds = self.calculate_world_bounds()
+        self.bounds = self.calculate_space_bounds()
 
-    
-    def calculate_world_bounds(self):
+
+    def calculate_space_bounds(self):
         """ Calculate the bounding box that encompasses all views """
         # remember, view bounds = (minXi, minZi, maxXi, maxZi)
         bounds = list(self.views[0].bounds)
