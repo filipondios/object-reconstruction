@@ -39,7 +39,7 @@ class BaseModel:
 
     @abstractmethod
     def draw_model(self) -> None:
-        """" Must draw the model in a 3D space """
+        """ Must draw the model in a 3D space """
         print('TODO: This method has to be implemented')
         pass
 
