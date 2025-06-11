@@ -27,7 +27,7 @@ class Model(BaseModel):
         self.bounds = self.calculate_space_bounds()
 
 
-    def calculate_space_bounds(self) -> Tuple[float, float, float, float, float, float]:
+    def calculate_space_bounds(self) -> tuple[float, float, float, float, float, float]:
         """ Calculate the bounding box that encompasses all views """
         # remember, view bounds = (minXi, minZi, maxXi, maxZi)
         bounds = list(self.views[0].bounds)
@@ -52,22 +52,28 @@ class Model(BaseModel):
 
 
     def project_view_to_voxels(self, view: View) -> None:
+        """ Project a 2D voxel grid onto a view, then remove those
+            rows whose projection lies outside the view polygon.  """
+
         get = lambda a, b, i: a + i * (b - a) / (self.resolution - 1)
         d = view.get_view_direction()
 
         for i in range(self.resolution):
             for j in range(self.resolution):
                 if d == 'xy':
+                    # The grid plane is parallel to the XY space plane
                     wx = get(self.bounds[0], self.bounds[1], i)
                     wy = get(self.bounds[2], self.bounds[3], j)
                     if not view.is_point_inside_contour(view.real_to_plane((wx, wy, 0))):
                         self.voxel_space[i, j, :] = False
                 elif d == 'xz':
+                    # The grid plane is parallel to the XZ space plane
                     wx = get(self.bounds[0], self.bounds[1], i)
                     wz = get(self.bounds[4], self.bounds[5], j)
                     if not view.is_point_inside_contour(view.real_to_plane((wx, 0, wz))):
                         self.voxel_space[i, :, j] = False
                 elif d == 'yz':
+                    # The grid plane is parallel to the YZ space plane
                     wy = get(self.bounds[2], self.bounds[3], i)
                     wz = get(self.bounds[4], self.bounds[5], j)
                     if not view.is_point_inside_contour(view.real_to_plane((0, wy, wz))):
@@ -75,6 +81,7 @@ class Model(BaseModel):
 
 
     def generate_surface(self) -> None:
+        """ Gathers the real coordinates of the model voxels """
         fx = lambda a, b, i: a + i * (b - a) / self.resolution
         size_x = (self.bounds[1] - self.bounds[0]) / self.resolution
         size_y = (self.bounds[3] - self.bounds[2]) / self.resolution

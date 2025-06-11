@@ -10,6 +10,7 @@ class ModelRender:
     vertical_rotation_axis: rl.Vector3
 
     def __init__(self, model: BaseModel):
+        """ Initializes the 3D camera and space """
         self.model = model
         self.origin = rl.Vector3(0,0,0)
 
@@ -28,6 +29,7 @@ class ModelRender:
 
 
     def rotate_horizontally(self, clockwise: bool):
+        """ Rotates the camera arround the vertical axis """
         if clockwise: speed = self.rotation_speed
         else: speed = -self.rotation_speed
 
@@ -45,6 +47,7 @@ class ModelRender:
 
 
     def rotate_vertically(self, clockwise: bool):
+        """ Rotates the camera arround an axis in the ZX plane """
         if clockwise: speed = self.rotation_speed
         else: speed = -self.rotation_speed
 
@@ -54,6 +57,8 @@ class ModelRender:
 
 
     def move_camera(self):
+        """ Rotates the camera automatically if the user is not
+            pressing a rotation key (one of the arrow keys). """
         rotated = False
 
         if(rl.is_key_down(rl.KeyboardKey.KEY_RIGHT)):
@@ -72,6 +77,7 @@ class ModelRender:
 
 
     def initialize(self):
+        """ Initializes the Raylib 3D context """
         rl.set_config_flags(rl.ConfigFlags.FLAG_FULLSCREEN_MODE)
         rl.set_trace_log_level(rl.TraceLogLevel.LOG_ERROR)
         rl.init_window(0, 0, self.model.path)
@@ -90,6 +96,7 @@ class ModelRender:
 
 
     def render_loop(self):
+        """ Draws the reconstructed model """
         while not rl.window_should_close():
             self.move_camera()
             rl.begin_drawing()

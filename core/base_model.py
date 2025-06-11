@@ -10,37 +10,42 @@ class BaseModel:
     path: str
 
     def __init__(self, path: str, viewClass: BaseView):
+        """" Initializes a Model, loading all the available views """
         self.views = [viewClass(f) for f in Path(path).iterdir() if f.is_dir()]
         self.path = path
         print(self)
 
+
     @abstractmethod
     def initial_reconstruction(self, args=None) -> None:
-        # Generate a first version of
-        # the model using two views.
+        """ Must generate a first version of the model """
+        print('TODO: This method has to be implemented')
         pass
+
 
     @abstractmethod
     def refine_model(self) -> None:
-        # Using the rest of views of 
-        # the model, generate a more
-        # accurate version of the 
-        # model.
+        """ Must generate a more accurate version of the model """
+        print('TODO: This method has to be implemented')
         pass
+
 
     @abstractmethod
     def generate_surface(self) -> None:
-        # After all the steps above,
-        # generate the surface of the
-        # reconstructed object.
+        """ Must generate some 'visual' surface for the model """
+        print('TODO: This method has to be implemented')
         pass
+
 
     @abstractmethod
     def draw_model(self) -> None:
-        # Draw the model in a 3D space
+        """" Must draw the model in a 3D space """
+        print('TODO: This method has to be implemented')
         pass
 
+
     def __str__(self) -> str:
+        """ Displays all the model data in a table format. """
         fmt = lambda p: f"({p.x}, {p.y}, {p.z})"
         data = [[view.name, 
             fmt(view.origin),

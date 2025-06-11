@@ -11,6 +11,7 @@ class BaseView:
     name: str
 
     def __init__(self, path: Path):
+        """ Initializes Vx, Vy, Vz, O, given a path """
         camera_data = path.joinpath('camera.json')
         projection = path.joinpath('plane.bmp')
 
@@ -27,13 +28,15 @@ class BaseView:
             self.name = data['name']
 
 
-    def plane_to_real(self, point):
+    def plane_to_real(self, point) -> Point3D:
+        """ Converts a 2D point to a 3D point """
         u = self.vx * point[0]
         v = self.vz * point[1]
         return self.origin + u + v
 
 
-    def real_to_plane(self, point):
+    def real_to_plane(self, point) -> tuple[float, float]:
+        """ Converts a 3D point to a 2D point """
         delta = Matrix([
             point[0] - self.origin.x,
             point[1] - self.origin.y,

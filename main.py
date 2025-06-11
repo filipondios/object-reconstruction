@@ -5,7 +5,7 @@ from core.model_render import ModelRender
 
 if __name__ == "__main__":
 
-    # Argument parsing (options)
+    # Argument parsing (program options)
     parser = ArgumentParser()
     parser.add_argument('-p', '--path', type=str, required=True, help='Model path.')
     parser.add_argument('-c', '--complexity', type=str, required=True, help='Reconstruction algorithm complexity. Options: complex, simple.')
@@ -14,14 +14,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    # Build and render the model
     if args.complexity == 'complex':
+        # Polygon implementation
         if args.step is None:
             step = 1
         else: step = args.step
         model = ComplexModel(args.path, step)
 
     elif args.complexity == 'simple':
+        # Voxels implementation
         if args.resolution is None:
             resolution = 8
         else: resolution = args.resolution
