@@ -28,14 +28,14 @@ class BaseView:
             self.name = data['name']
 
 
-    def plane_to_real(self, point) -> Point3D:
+    def plane_to_real(self, point: tuple[float, float]) -> Point3D:
         """ Converts a 2D point to a 3D point """
         u = self.vx * point[0]
         v = self.vz * point[1]
         return self.origin + u + v
 
 
-    def real_to_plane(self, point) -> tuple[float, float]:
+    def real_to_plane(self, point: tuple[float, float, float]) -> tuple[float, float]:
         """ Converts a 3D point to a 2D point """
         delta = Matrix([
             point[0] - self.origin.x,

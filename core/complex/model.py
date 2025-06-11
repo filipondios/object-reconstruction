@@ -21,7 +21,7 @@ class Model(BaseModel):
         self.generate_surface()
 
 
-    def initial_reconstruction(self, step: float):
+    def initial_reconstruction(self, step: float) -> None:
         if len(self.views) < 2:
             return
 
@@ -77,7 +77,7 @@ class Model(BaseModel):
         self.views.pop(0)
 
 
-    def refine_model(self):
+    def refine_model(self) -> None:
         for view in self.views:
             print('[+] Using ' + view.name + ' to refine.')
             for (plane, polygons) in self.planes.items():
@@ -97,7 +97,7 @@ class Model(BaseModel):
                 self.planes[plane] = refined_polygons
 
 
-    def generate_surface(self):
+    def generate_surface(self) -> None:
         """ Generates the surface triangulation structure """
         # Sort the planes using the normal axis
         plane, _ = next(iter(self.planes.items()))
@@ -118,17 +118,17 @@ class Model(BaseModel):
                 self.case_b_triangulate(poligons1, poligons2)
 
 
-    def case_a_triangulate(self, pl1: list[Point3D], pl2: list[Point3D]):
+    def case_a_triangulate(self, pl1: list[Point3D], pl2: list[Point3D]) -> None:
         """ Calculates the triangulation for case A """
         pass
 
 
-    def case_b_triangulate(self, pls1: list[list[Point3D]], pls2: list[list[Point3D]]):
+    def case_b_triangulate(self, pls1: list[list[Point3D]], pls2: list[list[Point3D]]) -> None:
         """ Calculates the triangulation for case B """
         pass
 
 
-    def draw_model(self):
+    def draw_model(self) -> None:
         for polygons in self.planes.values():
             for poly in polygons:
                 for i in range(len(poly)):

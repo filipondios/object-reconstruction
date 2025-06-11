@@ -30,7 +30,7 @@ class View(BaseView):
         self.polygon = Polygon(vertices_centered)
 
 
-    def get_contour_polygon(self, img: np.ndarray):
+    def get_contour_polygon(self, img: np.ndarray) -> list[tuple[int, int]]:
         """ Iterates over a closed line in a image and returns the
             vertices that describe such polygon's line. """
 
@@ -84,7 +84,7 @@ class View(BaseView):
         return points
     
     
-    def rasterization_segments(self, line: Line3D, step: float):
+    def rasterization_segments(self, line: Line3D, step: float) -> list[tuple[float, float]]:
         """ Intersect a polygon with lines and collect the resulting segemnts """
         # Calculate the direction of the segments
         q = Matrix(line.p1)
