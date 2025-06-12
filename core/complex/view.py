@@ -14,8 +14,7 @@ class View(BaseView):
         super().__init__(path)
 
         # Get the object contour lines
-        projection = path.joinpath('plane.bmp')
-        img = cv2.imread(projection, cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(self.projection, cv2.IMREAD_GRAYSCALE)
         _, img = cv2.threshold(img, 254, 255, cv2.THRESH_BINARY_INV)
         laplacian = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
         img = cv2.filter2D(img, -1, laplacian)

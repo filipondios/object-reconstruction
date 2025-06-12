@@ -18,7 +18,8 @@ class BaseView:
         if ((not camera_data.is_file()) or
             (not projection.is_file())):
             raise FileNotFoundError
-        
+        self.projection = projection
+
         with open(camera_data, 'r') as file:
             data = json.load(file)
             self.origin = Point3D(data['origin'])
