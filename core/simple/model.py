@@ -1,7 +1,7 @@
 import numpy as np
 import pyray as rl
 from core.base_model import BaseModel
-from core.simple.view import View
+from core.simple.view import View, DirectionPlane
 
 
 class Model(BaseModel):
@@ -60,19 +60,19 @@ class Model(BaseModel):
 
         for i in range(self.resolution):
             for j in range(self.resolution):
-                if d == 'xy':
+                if d == DirectionPlane.XY:
                     # The grid plane is parallel to the XY space plane
                     wx = get(self.bounds[0], self.bounds[1], i)
                     wy = get(self.bounds[2], self.bounds[3], j)
                     if not view.is_point_inside_contour(view.real_to_plane((wx, wy, 0))):
                         self.voxel_space[i, j, :] = False
-                elif d == 'xz':
+                elif d == DirectionPlane.XZ:
                     # The grid plane is parallel to the XZ space plane
                     wx = get(self.bounds[0], self.bounds[1], i)
                     wz = get(self.bounds[4], self.bounds[5], j)
                     if not view.is_point_inside_contour(view.real_to_plane((wx, 0, wz))):
                         self.voxel_space[i, :, j] = False
-                elif d == 'yz':
+                elif d == DirectionPlane.YZ:
                     # The grid plane is parallel to the YZ space plane
                     wy = get(self.bounds[2], self.bounds[3], i)
                     wz = get(self.bounds[4], self.bounds[5], j)
