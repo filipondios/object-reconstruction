@@ -112,20 +112,33 @@ class Model(BaseModel):
         for ((_, poligons1), (_, poligons2)) in zip(planes, planes[1:]):
             if len(poligons1) == 1 and len(poligons2) == 1:
                 # Case A: Both planes have 1 polygon
-                self.case_a_triangulate(poligons1[0], poligons2[0])
-            else: 
+                self.case_a_triangulate(poligons1[0], poligons2[0], normal)
+            else:
                 # Case B: One of the planes has more that 1 polygon
                 self.case_b_triangulate(poligons1, poligons2)
 
 
-    def case_a_triangulate(self, pl1: list[Point3D], pl2: list[Point3D]) -> None:
+    def case_a_triangulate(self, pol1: list[Point3D], pol2: list[Point3D], normal) -> None:
         """ Calculates the triangulation for case A """
-        pass
+        # (1) Calculate centroids and align both polygon's
+        centroid1 = self.calculate_centroid(pol1)
+        centroid2 = self.calculate_centroid(pol2)
+        translation = centroid2 - centroid1
+        pol1 = [point + translation for point in pol1]
+        # TODO The rest
 
 
     def case_b_triangulate(self, pls1: list[list[Point3D]], pls2: list[list[Point3D]]) -> None:
         """ Calculates the triangulation for case B """
         pass
+
+    
+    def calculate_centroid(self, polygon):
+        points = len(polygon)
+        centroid_x = sum(point.x for point in polygon) / points
+        centroid_y = sum(point.y for point in polygon) / points
+        centroid_z = sum(point.z for point in polygon) / points
+        return Point3D(centroid_x, centroid_y, centroid_z)
 
 
     def draw_model(self) -> None:
