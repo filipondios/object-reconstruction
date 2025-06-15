@@ -16,8 +16,11 @@ class Model(BaseModel):
         super().__init__(path, View)
         self.resolution = resolution
         self.cubes = []
+        print('[+] Starting initial reconstruction')
         self.initial_reconstruction()
+        print('[+] Refining model')
         self.refine_model()
+        print('[+] Generating surface')
         self.generate_surface()
 
 
