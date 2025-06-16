@@ -42,7 +42,7 @@ class Model(BaseModel):
         # Calculate both views rasterization lines
         segments1 = view1.rasterization_segments(common_line, step)
         segments2 = view2.rasterization_segments(common_line, step)
-        print('[+] Using ' + view1.name + ' and ' + view2.name + ' for initial reconstruction.')
+        print(f'[+] Using {view1.name} and {view2.name} for initial reconstruction.')
 
         for segment1 in segments1:
             # contour generation lines for segment1
@@ -79,7 +79,7 @@ class Model(BaseModel):
 
     def refine_model(self) -> None:
         for view in self.views:
-            print('[+] Using ' + view.name + ' to refine.')
+            print(f'[+] Using {view.name} to refine.')
             for (plane, polygons) in self.planes.items():
                 refined_polygons = []
 
