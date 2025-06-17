@@ -15,7 +15,7 @@ class ModelRender:
         self.origin = rl.Vector3(0,0,0)
 
         self.camera = rl.Camera3D(rl.Vector3(40,40,40), self.origin,
-            rl.Vector3(0,1,0), 90., rl.CameraProjection.CAMERA_ORTHOGRAPHIC)
+            rl.Vector3(0,1,0), 60., rl.CameraProjection.CAMERA_PERSPECTIVE)
         self.horizontal_rotation_axis = rl.vector3_normalize(rl.Vector3(
             self.camera.position.z, 0., -self.camera.position.x))
         self.vertical_rotation_axis = rl.Vector3(0,1,0)
@@ -96,11 +96,30 @@ class ModelRender:
             self.box[3] * self.height_scale)
         self.text_fontsize = self.text_fontsize * self.width_scale
 
+    
+    def zoom(self):
+        zoom = rl.get_mouse_wheel_move()
+        if zoom == 0:
+            return
+        
+        if zoom < 0:
+            # zoom out, away from the object
+            norm = rl.vector3_normalize(self.camera.position)
+            movement = rl.vector3_scale(norm, 2.)
+            self.camera.position = rl.vector3_add(self.camera.position, movement)
+        elif zoom > 0:
+            # zoom in, towards the object
+            norm = rl.vector3_normalize(self.camera.position)
+            movement = rl.vector3_scale(norm, 2.)
+            self.camera.position = rl.vector3_subtract(self.camera.position, movement)
+
 
     def render_loop(self):
         """ Draws the reconstructed model """
         while not rl.window_should_close():
             self.move_camera()
+            self.zoom()
+
             rl.begin_drawing()
             rl.clear_background(rl.BLACK)            
             rl.begin_mode_3d(self.camera)
@@ -122,18 +141,18 @@ class ModelRender:
                 self.box[0] * 2,
                 int(self.box[1] * 5),
                 self.text_fontsize,
-                rl.fade(rl.BLACK, 0.5))
+                rl.fade(rl.BLACK, 0.7))
             rl.draw_text(
                 "[Mouse wheel] to zoom in-out",
                 self.box[0] * 2,
                 int(self.box[1] * 8),
                 self.text_fontsize,
-                rl.fade(rl.BLACK, 0.5))
+                rl.fade(rl.BLACK, 0.7))
             rl.draw_text(
                 "[Right/Left/Up/Down] to rotate the object",
                 self.box[0] * 2,
                 int(self.box[1] * 11),
                 self.text_fontsize,
-                rl.fade(rl.BLACK, 0.5))
+                rl.fade(rl.BLACK, 0.7))
             rl.end_drawing()
         rl.close_window()
