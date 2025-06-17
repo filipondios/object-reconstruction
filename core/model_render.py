@@ -22,8 +22,7 @@ class ModelRender:
 
         self.rotation_speed = 0.02
         self.text_fontsize = 20
-        self.text_x = 10
-        self.text_y = 10
+        self.box = (10, 10, 500, 130)
         self.base_width = 1366
         self.base_height = 768
 
@@ -84,15 +83,18 @@ class ModelRender:
         rl.set_target_fps(60)
 
         monitor = rl.get_current_monitor()
-        height = rl.get_monitor_height(monitor)
-        width = rl.get_monitor_width(monitor)
-        rl.set_window_size(width, height)
+        h = rl.get_monitor_height(monitor)
+        w = rl.get_monitor_width(monitor)
+        rl.set_window_size(w, h)
 
-        width_ratio = int(width/self.base_width)
-        height_ratio = int(height/self.base_height)
-        self.text_y = self.text_y * height_ratio
-        self.text_x = self.text_x * width_ratio
-        self.text_fontsize = self.text_fontsize * width_ratio 
+        self.width_scale  = int(w/self.base_width)
+        self.height_scale = int(h/self.base_height)
+        self.box = (
+            self.box[0] * self.width_scale,
+            self.box[1] * self.height_scale,
+            self.box[2] * self.width_scale,
+            self.box[3] * self.height_scale)
+        self.text_fontsize = self.text_fontsize * self.width_scale
 
 
     def render_loop(self):
@@ -102,16 +104,36 @@ class ModelRender:
             rl.begin_drawing()
             rl.clear_background(rl.BLACK)            
             rl.begin_mode_3d(self.camera)
-
             self.model.draw_model()
-            
             rl.end_mode_3d()
+
+            # Dibujar un rectangulo donde mostrar informacion
+            rl.draw_rectangle_rec(self.box, rl.fade(rl.SKYBLUE, 0.5))
+            rl.draw_rectangle_lines_ex(self.box, 2 * self.height_scale, rl.BLUE)
+
             rl.draw_text(
-                "Press [Esc] to close the program",
-                self.text_x,
-                self.text_y,
+                "Object camera controls:",
+                self.box[0] * 2,
+                self.box[1] * 2,
                 self.text_fontsize,
-                rl.WHITE
-            )
+                rl.BLACK)
+            rl.draw_text(
+                "[Esc] to close the program",
+                self.box[0] * 2,
+                int(self.box[1] * 5),
+                self.text_fontsize,
+                rl.fade(rl.BLACK, 0.5))
+            rl.draw_text(
+                "[Mouse wheel] to zoom in-out",
+                self.box[0] * 2,
+                int(self.box[1] * 8),
+                self.text_fontsize,
+                rl.fade(rl.BLACK, 0.5))
+            rl.draw_text(
+                "[Right/Left/Up/Down] to rotate the object",
+                self.box[0] * 2,
+                int(self.box[1] * 11),
+                self.text_fontsize,
+                rl.fade(rl.BLACK, 0.5))
             rl.end_drawing()
         rl.close_window()
