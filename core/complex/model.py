@@ -103,19 +103,25 @@ class Model(BaseModel):
         plane, _ = next(iter(self.planes.items()))
         normal = plane.normal_vector
         planes = list(self.planes.items())
+        line = Line3D(plane.p1, plane.normal_vector)
 
         if normal[0]   != 0: planes.sort(key=lambda pair: pair[0].p1.x)
         elif normal[1] != 0: planes.sort(key=lambda pair: pair[0].p1.y)
         elif normal[2] != 0: planes.sort(key=lambda pair: pair[0].p1.z)
 
         # Iterate the collection by pairs of planes
-        for ((_, poligons1), (_, poligons2)) in zip(planes, planes[1:]):
+        for ((plane1, poligons1), (plane2, poligons2)) in zip(planes, planes[1:]):
             if len(poligons1) == 1 and len(poligons2) == 1:
                 # Case A: Both planes have 1 polygon
                 self.case_a_triangulate(poligons1[0], poligons2[0])
             else:
                 # Case B: One of the planes has more that 1 polygon
-                self.case_b_triangulate(poligons1, poligons2)
+                # (1) Calculate an intermediate plane between each plane
+                p1 = plane1.intersection(line)
+                p2 = plane2.intersection(line)
+                m = Point3D((p1.x + p2.x)/2, (p1.y + p2.y)/2, (p1.z + p2.z)/2)
+                intermitiate = Plane(m, plane1.normal_vector)
+                self.case_b_triangulate(poligons1 + poligons2, intermitiate)
 
 
     def case_a_triangulate(self, pol1: list[Point3D], pol2: list[Point3D]) -> None:
@@ -130,9 +136,12 @@ class Model(BaseModel):
         # (3) Calculate the triangulation graph
 
 
-    def case_b_triangulate(self, pls1: list[list[Point3D]], pls2: list[list[Point3D]]) -> None:
+    def case_b_triangulate(self, polygons: list[list[Point3D]], plane: Plane) -> None:
         """ Calculates the triangulation for case B """
-        pass
+        for polygon in polygons:
+            for point in polygon:
+                projection = plane.projection(point)
+                self.edges.append((point, projection))
 
     
     def calculate_centroid(self, polygon):
