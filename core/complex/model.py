@@ -40,8 +40,16 @@ class Model(BaseModel):
         common_line = plane1.intersection(plane2)[0]
 
         # Calculate both views rasterization lines
-        segments1 = view1.rasterization_segments(common_line, step)
-        segments2 = view2.rasterization_segments(common_line, step)
+        bounds1 = view1.polygon.bounds
+        bounds2 = view2.polygon.bounds
+        min_x = min(bounds1[0], bounds2[0])
+        min_z = min(bounds1[1], bounds2[1])
+        max_x = max(bounds1[2], bounds2[2])
+        max_z = max(bounds1[3], bounds2[3])
+        bounds = (min_x, min_z, max_x, max_z)
+
+        segments1 = view1.rasterization_segments(common_line, step, bounds)
+        segments2 = view2.rasterization_segments(common_line, step, bounds)
         print(f'[+] Using {view1.name} and {view2.name} for initial reconstruction.')
 
         for segment1 in segments1:
@@ -152,7 +160,7 @@ class Model(BaseModel):
         return Point3D(centroid_x, centroid_y, centroid_z)
 
 
-    def draw_model(self) -> None:       
+    def draw_model(self) -> None:
         for polygons in self.planes.values():
             for poly in polygons:
                 for i in range(len(poly)):
