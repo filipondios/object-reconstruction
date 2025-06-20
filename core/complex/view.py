@@ -83,7 +83,7 @@ class View(BaseView):
         return points
     
     
-    def rasterization_segments(self, line: Line3D, step: float) -> list[tuple[float, float]]:
+    def rasterization_segments(self, line: Line3D, step: float, bounds) -> list[tuple[float, float]]:
         """ Intersect a polygon with lines and collect the resulting segemnts """
         # Calculate the direction of the segments
         q = Matrix(line.p1)
@@ -93,13 +93,14 @@ class View(BaseView):
         q_prime = q + v * t
         direction = q_prime - Matrix(self.origin)
 
-        min_x, min_z, max_x, max_z = self.polygon.bounds
+        min_x, min_z, max_x, max_z = bounds
         segments = []
-        
+
         if direction.cross(Matrix(self.vx)).norm() <= 1e-6:
             # In this case the segments are horizontal
             for z in np.arange(min_z, max_z + step, step):
                 line = LineString([(min_x - 1e6, z), (max_x + 1e6, z)])
+                print(line)
                 intersection = self.polygon.intersection(line)
                 
                 if not intersection.is_empty:
@@ -116,6 +117,7 @@ class View(BaseView):
             for x in np.arange(min_x, max_x + step, step):
                 v_line = LineString([(x, min_z - 1e6), (x, max_z + 1e6)])
                 intersection = self.polygon.intersection(v_line)
+                print(v_line)
             
                 if not intersection.is_empty:
                     if isinstance(intersection, LineString):
