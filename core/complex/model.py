@@ -7,7 +7,7 @@ from core.complex.view import View
 
 class Model(BaseModel):
 
-    planes: dict[Plane, list[list[Point3D]]]
+    planes: dict[float, tuple[Plane, list[list[Point3D]]]]
 
     def __init__(self, path: str, step: float):
         super().__init__(path, View)
@@ -19,6 +19,25 @@ class Model(BaseModel):
         self.refine_model()
         print('[+] Generating surface')
         self.generate_surface()
+
+    
+    def get_planes_normal(self, normal: tuple[float, float, float]) -> None:
+        """ Gets the direction axis of the common line """
+        norm = tuple(Matrix(normal).normalized())
+        self.planes_normal = { 
+            (1, 0, 0): 'x',
+            (0, 1, 0): 'y',
+            (0, 0, 1): 'z'
+        } [norm]
+
+    
+    def get_plane_key(self, point: Point3D):
+        if self.planes_normal == 'x':
+            return point.x
+        if self.planes_normal == 'y':
+            return point.y
+        if self.planes_normal == 'z':
+            return point.z
 
 
     def initial_reconstruction(self, step: float) -> None:
@@ -38,6 +57,7 @@ class Model(BaseModel):
         plane1 = Plane(view1.origin, view1.vy)
         plane2 = Plane(view2.origin, view2.vy)
         common_line = plane1.intersection(plane2)[0]
+        self.get_planes_normal(common_line.direction)
 
         # Calculate both views rasterization lines
         bounds1 = view1.polygon.bounds
@@ -61,7 +81,12 @@ class Model(BaseModel):
             contourv1_2 = Line3D(dst1, direction_ratio=view1.vy)
 
             plane = Plane(src1, common_line.direction)
-            polygon_list = self.planes.setdefault(plane, [])
+            key = self.get_plane_key(src1)
+
+            if key not in self.planes:
+                plane = Plane(src1, common_line.direction)
+                self.planes[key] = (plane, [])
+            polygon_list = self.planes[key][1]
 
             for segment2 in segments2:
                 src2 = view2.plane_to_real(segment2[0])
@@ -88,7 +113,7 @@ class Model(BaseModel):
     def refine_model(self) -> None:
         for view in self.views:
             print(f'[+] Using {view.name} to refine.')
-            for (plane, polygons) in self.planes.items():
+            for (key, (plane, polygons)) in self.planes.items():
                 refined_polygons = []
 
                 for polygon3d in polygons:
@@ -102,20 +127,20 @@ class Model(BaseModel):
                     projection = [plane.projection(view.plane_to_real(point))
                         for point in intersection.exterior.coords]
                     refined_polygons.append(projection)
-                self.planes[plane] = refined_polygons
+                self.planes[key] = (plane, refined_polygons)
 
 
     def generate_surface(self) -> None:
         """ Generates the surface triangulation structure """
         # Sort the planes using the normal axis
-        plane, _ = next(iter(self.planes.items()))
-        normal = plane.normal_vector
-        planes = list(self.planes.items())
-        line = Line3D(plane.p1, plane.normal_vector)
+        planes = list(self.planes.values())
+        if self.planes_normal == 'x': planes.sort(key=lambda pair: pair[0].p1.x)
+        if self.planes_normal == 'y': planes.sort(key=lambda pair: pair[0].p1.y)
+        if self.planes_normal == 'z': planes.sort(key=lambda pair: pair[0].p1.z)
 
-        if normal[0]   != 0: planes.sort(key=lambda pair: pair[0].p1.x)
-        elif normal[1] != 0: planes.sort(key=lambda pair: pair[0].p1.y)
-        elif normal[2] != 0: planes.sort(key=lambda pair: pair[0].p1.z)
+        # Get a perpendicular line to all planes
+        _, (plane, _) = next(iter(self.planes.items()))
+        line = Line3D(plane.p1, plane.normal_vector)
 
         # Iterate the collection by pairs of planes
         for ((plane1, poligons1), (plane2, poligons2)) in zip(planes, planes[1:]):
@@ -125,8 +150,8 @@ class Model(BaseModel):
             else:
                 # Case B: One of the planes has more that 1 polygon
                 # (1) Calculate an intermediate plane between each plane
-                p1 = plane1.intersection(line)
-                p2 = plane2.intersection(line)
+                p1 = plane1.intersection(line)[0]
+                p2 = plane2.intersection(line)[0]
                 m = Point3D((p1.x + p2.x)/2, (p1.y + p2.y)/2, (p1.z + p2.z)/2)
                 intermitiate = Plane(m, plane1.normal_vector)
                 self.case_b_triangulate(poligons1 + poligons2, intermitiate)
@@ -161,7 +186,7 @@ class Model(BaseModel):
 
 
     def draw_model(self) -> None:
-        for polygons in self.planes.values():
+        for (_, polygons) in self.planes.values():
             for poly in polygons:
                 for i in range(len(poly)):
                     a = poly[i]
