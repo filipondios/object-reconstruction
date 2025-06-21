@@ -100,7 +100,6 @@ class View(BaseView):
             # In this case the segments are horizontal
             for z in np.arange(min_z, max_z + step, step):
                 line = LineString([(min_x - 1e6, z), (max_x + 1e6, z)])
-                print(line)
                 intersection = self.polygon.intersection(line)
                 
                 if not intersection.is_empty:
@@ -115,9 +114,8 @@ class View(BaseView):
         elif direction.cross(Matrix(self.vz)).norm() <= 1e-6:
             # In this case the segments are vertical
             for x in np.arange(min_x, max_x + step, step):
-                v_line = LineString([(x, min_z - 1e6), (x, max_z + 1e6)])
-                intersection = self.polygon.intersection(v_line)
-                print(v_line)
+                line = LineString([(x, min_z - 1e6), (x, max_z + 1e6)])
+                intersection = self.polygon.intersection(line)
             
                 if not intersection.is_empty:
                     if isinstance(intersection, LineString):
