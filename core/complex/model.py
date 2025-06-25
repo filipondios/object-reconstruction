@@ -91,7 +91,7 @@ class Model(BaseModel):
             for segment2 in segments2:
                 src2 = view2.plane_to_real(segment2[0])
 
-                if not (src2 in plane):
+                if src2 not in plane:
                     continue
 
                 # contour generation lines for segment1
