@@ -2,6 +2,7 @@ from abc import abstractmethod
 from tabulate import tabulate
 from core.base_view import BaseView
 from pathlib import Path
+import warnings
 
 
 class BaseModel:
@@ -19,25 +20,25 @@ class BaseModel:
     @abstractmethod
     def initial_reconstruction(self, args=None) -> None:
         """ Must generate a first version of the model """
-        print('TODO: This method has to be implemented')
+        warnings.warn('This method has to be implemented')
 
 
     @abstractmethod
     def refine_model(self) -> None:
         """ Must generate a more accurate version of the model """
-        print('TODO: This method has to be implemented')
+        warnings.warn('This method has to be implemented')
 
 
     @abstractmethod
     def generate_surface(self) -> None:
         """ Must generate some 'visual' surface for the model """
-        print('TODO: This method has to be implemented')
+        warnings.warn('This method has to be implemented')
 
 
     @abstractmethod
     def draw_model(self) -> None:
         """ Must draw the model in a 3D space """
-        print('TODO: This method has to be implemented')
+        warnings.warn('This method has to be implemented')
 
 
     def __str__(self) -> str:
