@@ -13,15 +13,9 @@ class Model(BaseModel):
     cube_size: tuple[float, float, float]
 
     def __init__(self, path: str, resolution: int):
-        super().__init__(path, View)
         self.resolution = resolution
         self.cubes = []
-        print('[+] Starting initial reconstruction')
-        self.initial_reconstruction()
-        print('[+] Refining model')
-        self.refine_model()
-        print('[+] Generating surface')
-        self.generate_surface()
+        super().__init__(path, View)
 
 
     def initial_reconstruction(self, _=None) -> None:

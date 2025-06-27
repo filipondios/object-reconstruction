@@ -15,6 +15,12 @@ class BaseModel:
         self.views = [viewClass(f) for f in Path(path).iterdir() if f.is_dir()]
         self.path = path
         print(self)
+        print('[+] Starting initial reconstruction')
+        self.initial_reconstruction()
+        print('[+] Refining model')
+        self.refine_model()
+        print('[+] Generating surface')
+        self.generate_surface()
 
 
     @abstractmethod

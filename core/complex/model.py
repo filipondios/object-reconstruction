@@ -10,15 +10,10 @@ class Model(BaseModel):
     planes: dict[float, tuple[Plane, list[list[Point3D]]]]
 
     def __init__(self, path: str, step: float):
-        super().__init__(path, View)
         self.planes = {}
         self.edges = []
-        print('[+] Starting initial reconstruction')
-        self.initial_reconstruction(step)
-        print('[+] Refining model')
-        self.refine_model()
-        print('[+] Generating surface')
-        self.generate_surface()
+        self.step = step
+        super().__init__(path, View)
 
     
     def get_planes_normal(self, normal: tuple[float, float, float]) -> None:
@@ -40,7 +35,7 @@ class Model(BaseModel):
             return point.z
 
 
-    def initial_reconstruction(self, step: float) -> None:
+    def initial_reconstruction(self) -> None:
         if len(self.views) < 2:
             return
 
@@ -68,8 +63,8 @@ class Model(BaseModel):
         max_z = max(bounds1[3], bounds2[3])
         bounds = (min_x, min_z, max_x, max_z)
 
-        segments1 = view1.rasterization_segments(common_line, step, bounds)
-        segments2 = view2.rasterization_segments(common_line, step, bounds)
+        segments1 = view1.rasterization_segments(common_line, self.step, bounds)
+        segments2 = view2.rasterization_segments(common_line, self.step, bounds)
         print(f'[+] Using {view1.name} and {view2.name} for initial reconstruction.')
 
         for segment1 in segments1:
