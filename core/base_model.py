@@ -14,7 +14,21 @@ class BaseModel:
         """" Initializes a Model, loading all the available views """
         self.views = [viewClass(f) for f in Path(path).iterdir() if f.is_dir()]
         self.path = path
-        print(self)
+
+        # Display all the model data in a table format
+        format = lambda p: f"({p.x}, {p.y}, {p.z})"
+        data = [[view.name, 
+            format(view.origin),
+            format(view.vx),
+            format(view.vy),
+            format(view.vz)]
+            for view in self.views]
+        headers = ['Name', 'Origin', 'Vx', 'Vy', 'Vz']
+        table = tabulate(data, headers=headers, tablefmt="github")
+        name = 'A model has been found at: %s' % self.path
+        print(f'{name}.\nThe views found of the model are:\n{table}')
+
+        # Model reconstruction process
         print('[+] Starting initial reconstruction')
         self.initial_reconstruction()
         print('[+] Refining model')
@@ -45,18 +59,3 @@ class BaseModel:
     def draw_model(self) -> None:
         """ Must draw the model in a 3D space """
         warnings.warn('This method has to be implemented')
-
-
-    def __str__(self) -> str:
-        """ Displays all the model data in a table format. """
-        fmt = lambda p: f"({p.x}, {p.y}, {p.z})"
-        data = [[view.name, 
-            fmt(view.origin),
-            fmt(view.vx),
-            fmt(view.vy),
-            fmt(view.vz)]
-            for view in self.views]
-        headers = ['Name', 'Origin', 'Vx', 'Vy', 'Vz']
-        table = tabulate(data, headers=headers, tablefmt="github")
-        name = 'A model has been found at: %s' % self.path
-        return '%s.\nThe views found of the model are:\n%s' % (name, table)
