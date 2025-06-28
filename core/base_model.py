@@ -16,7 +16,7 @@ class BaseModel:
         self.path = path
 
         # Display all the model data in a table format
-        format = lambda p: f"({p.x}, {p.y}, {p.z})"
+        format = lambda p: f'({p.x}, {p.y}, {p.z})'
         data = [[view.name, 
             format(view.origin),
             format(view.vx),

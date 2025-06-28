@@ -131,25 +131,25 @@ class ModelRender:
             rl.draw_rectangle_lines_ex(self.box, 2 * self.height_scale, rl.BLUE)
 
             rl.draw_text(
-                "Object camera controls:",
+                'Object camera controls:',
                 self.box[0] * 2,
                 self.box[1] * 2,
                 self.text_fontsize,
                 rl.BLACK)
             rl.draw_text(
-                "[Esc] to close the program",
+                '[Esc] to close the program',
                 self.box[0] * 2,
                 int(self.box[1] * 5),
                 self.text_fontsize,
                 rl.fade(rl.BLACK, 0.7))
             rl.draw_text(
-                "[Mouse wheel] to zoom in-out",
+                '[Mouse wheel] to zoom in-out',
                 self.box[0] * 2,
                 int(self.box[1] * 8),
                 self.text_fontsize,
                 rl.fade(rl.BLACK, 0.7))
             rl.draw_text(
-                "[Right/Left/Up/Down] to rotate the object",
+                '[Right/Left/Up/Down] to rotate the object',
                 self.box[0] * 2,
                 int(self.box[1] * 11),
                 self.text_fontsize,
