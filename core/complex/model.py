@@ -3,6 +3,13 @@ from shapely import Polygon
 import pyray as rl
 from core.base_model import BaseModel
 from core.complex.view import View
+from enum import Enum
+
+
+class Axis(Enum):
+    X = 0x0
+    Y = 0x1
+    Z = 0x2
 
 
 class Model(BaseModel):
@@ -15,23 +22,23 @@ class Model(BaseModel):
         self.step = step
         super().__init__(path, View)
 
-    
+     
     def get_planes_normal(self, normal: tuple[float, float, float]) -> None:
         """ Gets the direction axis of the common line """
         norm = tuple(Matrix(normal).normalized())
         self.planes_normal = { 
-            (1, 0, 0): 'x',
-            (0, 1, 0): 'y',
-            (0, 0, 1): 'z'
+            (1, 0, 0): Axis.X,
+            (0, 1, 0): Axis.Y,
+            (0, 0, 1): Axis.Z
         } [norm]
 
     
     def get_plane_key(self, point: Point3D):
-        if self.planes_normal == 'x':
+        if self.planes_normal == Axis.X:
             return point.x
-        if self.planes_normal == 'y':
+        if self.planes_normal == Axis.Y:
             return point.y
-        if self.planes_normal == 'z':
+        if self.planes_normal == Axis.Z:
             return point.z
 
 
