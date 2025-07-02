@@ -7,9 +7,10 @@ from enum import Enum
 
 
 class Axis(Enum):
-    X = 0x0
-    Y = 0x1
-    Z = 0x2
+    Null = 0x0
+    X = 0x1
+    Y = 0x2
+    Z = 0x3
 
 
 class Model(BaseModel):
@@ -20,26 +21,8 @@ class Model(BaseModel):
         self.planes = {}
         self.edges = []
         self.step = step
+        self.planes_normal = Axis.Null
         super().__init__(path, View)
-
-     
-    def get_planes_normal(self, normal: tuple[float, float, float]) -> None:
-        """ Gets the direction axis of the common line """
-        norm = tuple(Matrix(normal).normalized())
-        self.planes_normal = { 
-            (1, 0, 0): Axis.X,
-            (0, 1, 0): Axis.Y,
-            (0, 0, 1): Axis.Z
-        } [norm]
-
-    
-    def get_plane_key(self, point: Point3D):
-        if self.planes_normal == Axis.X:
-            return point.x
-        if self.planes_normal == Axis.Y:
-            return point.y
-        if self.planes_normal == Axis.Z:
-            return point.z
 
 
     def initial_reconstruction(self) -> None:
@@ -59,7 +42,6 @@ class Model(BaseModel):
         plane1 = Plane(view1.origin, view1.vy)
         plane2 = Plane(view2.origin, view2.vy)
         common_line = plane1.intersection(plane2)[0]
-        self.get_planes_normal(common_line.direction)
 
         # Calculate both views rasterization lines
         bounds1 = view1.polygon.bounds
@@ -74,6 +56,11 @@ class Model(BaseModel):
         segments2 = view2.rasterization_segments(common_line, self.step, bounds)
         print(f'[+] Using {view1.name} and {view2.name} for initial reconstruction.')
 
+        # Calculate the axis aligned with the common line
+        axis_direction = tuple(Matrix(common_line.direction).normalized())
+        axes = {(1,0,0): Axis.X, (0,1,0): Axis.Y, (0,0,1): Axis.Z}
+        axis = axes[axis_direction]       
+
         for segment1 in segments1:
             # contour generation lines for segment1
             src1 = view1.plane_to_real(segment1[0])
@@ -83,7 +70,9 @@ class Model(BaseModel):
             contourv1_2 = Line3D(dst1, direction_ratio=view1.vy)
 
             plane = Plane(src1, common_line.direction)
-            key = self.get_plane_key(src1)
+            if axis == Axis.X: key = src1.x
+            elif axis == Axis.Y: key = src1.y
+            elif axis == Axis.Z: key = src1.z
 
             if key not in self.planes:
                 plane = Plane(src1, common_line.direction)
