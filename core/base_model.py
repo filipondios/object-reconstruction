@@ -29,22 +29,8 @@ class BaseModel:
         name = 'A model has been found at: %s' % self.path
         print(f'{name}.\nThe views found of the model are:\n{table}')
 
-        # Calculate the model's bounding box 
-        # (necessary for rendering)
-        self.calculate_model_bounds()
-
-        # Model reconstruction process
-        print('[+] Starting initial reconstruction')
-        self.initial_reconstruction()
-        print('[+] Refining model')
-        self.refine_model()
-        print('[+] Generating surface')
-        self.generate_surface()
-
-
-    def calculate_model_bounds(self) -> None:
-        """ Calculate the bounding box that encompasses all views """
-        # remember, view bounds = (minXi, minZi, maxXi, maxZi)
+        # Calculate the 3D bounding box that contains the model
+        # This is required for the model's rendering
         bounds = list(self.views[0].polygon.bounds)
 
         for view in self.views[1:]:
@@ -53,10 +39,16 @@ class BaseModel:
             bounds[1] = min(bounds[1], view_bounds[1])
             bounds[2] = max(bounds[2], view_bounds[2])
             bounds[3] = max(bounds[3], view_bounds[3])
-
-        # Returns the final box defining tuple (minX, minY, minZ, maxX, maxY, maxZ)
         self.bounds = (bounds[0], bounds[2], bounds[1], bounds[3], bounds[1], bounds[3])
 
+        # Model reconstruction process
+        print('[+] Starting initial reconstruction')
+        self.initial_reconstruction()
+        print('[+] Refining model')
+        self.refine_model()
+        print('[+] Generating surface')
+        self.generate_surface()
+       
 
     @abstractmethod
     def initial_reconstruction(self, args=None) -> None:
