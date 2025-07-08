@@ -1,5 +1,6 @@
 import pyray as rl
 from core.base_model import BaseModel
+import math
 
 
 class ModelRender:
@@ -14,7 +15,7 @@ class ModelRender:
         self.model = model
         self.origin = rl.Vector3(0,0,0)
 
-        self.camera = rl.Camera3D(rl.Vector3(40,40,40), self.origin,
+        self.camera = rl.Camera3D(self.calculate_camera_position(), self.origin,
             rl.Vector3(0,1,0), 60., rl.CameraProjection.CAMERA_PERSPECTIVE)
         self.horizontal_rotation_axis = rl.vector3_normalize(rl.Vector3(
             self.camera.position.z, 0., -self.camera.position.x))
@@ -25,6 +26,46 @@ class ModelRender:
         self.box = (10, 10, 500, 130)
         self.base_width = 1366
         self.base_height = 768
+
+
+    def calculate_camera_position(self) -> rl.Vector3:
+        """
+        Calculates a camera position such that the entire model
+        (bounded by its bounding box) is guaranteed to be visible
+        in the view frustum, regardless of its size.
+        """
+
+        min_x, max_x, min_y, max_y, min_z, max_z = self.model.bounds
+        center = rl.Vector3(
+            (min_x + max_x) / 2.0,
+            (min_y + max_y) / 2.0,
+            (min_z + max_z) / 2.0
+        )
+
+        # Bounding sphere radius
+        dx = (max_x - min_x) / 2.0
+        dy = (max_y - min_y) / 2.0
+        dz = (max_z - min_z) / 2.0
+        radius = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+        # Camera vertical field of view (degrees) -> radians
+        fov_y_degrees = 60.0
+        fov_y_radians = math.radians(fov_y_degrees)
+
+        # Approximate screen aspect ratio (widescreen)
+        aspect_ratio = 16.0 / 9.0
+        fov_x_radians = 2.0 * math.atan(math.tan(fov_y_radians / 2.0) * aspect_ratio)
+
+        limiting_fov = min(fov_y_radians, fov_x_radians)
+        distance = radius / math.sin(limiting_fov / 2.0)
+        distance *= 1.2 # safety margin (20%) to avoid clipping
+
+        offset = rl.Vector3(
+            distance * 0.577,
+            distance * 0.577,
+            distance * 0.577
+        )
+        return rl.vector3_add(center, offset)
 
 
     def rotate_horizontally(self, clockwise: bool):
