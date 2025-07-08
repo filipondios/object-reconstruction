@@ -40,11 +40,9 @@ class BaseView:
 
         # Get the vertices from the contour lines
         vertices = np.array(self.get_contour_polygon(img))
-        x_min, y_min = np.min(vertices, axis=0)
-        x_max, y_max = np.max(vertices, axis=0)
-        center = np.array([(x_min + x_max)/2, (y_min + y_max)/2])
-        vertices_centered = vertices - center
-        self.polygon = Polygon(vertices_centered)
+        min_vals, max_vals = np.min(vertices, axis=0), np.max(vertices, axis=0)
+        center = (min_vals + max_vals) / 2
+        self.polygon = Polygon(vertices - center)
 
     
     def get_contour_polygon(self, img: np.ndarray) -> list[tuple[int, int]]:
