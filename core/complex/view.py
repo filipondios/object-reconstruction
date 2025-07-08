@@ -1,6 +1,6 @@
 from pathlib import Path
 from sympy import Line3D, Matrix
-from shapely.geometry import Polygon, LineString, MultiLineString
+from shapely.geometry import LineString, MultiLineString
 from core.base_view import BaseView
 import numpy as np
 import cv2
@@ -8,81 +8,10 @@ import cv2
 
 class View(BaseView):
 
-    polygon: Polygon
-
     def __init__(self, path: Path):
         super().__init__(path)
 
-        # Get the object contour lines
-        img = cv2.imread(self.projection, cv2.IMREAD_GRAYSCALE)
-        _, img = cv2.threshold(img, 254, 255, cv2.THRESH_BINARY_INV)
-        laplacian = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
-        img = cv2.filter2D(img, -1, laplacian)
 
-        # Get the vertices from the contour lines
-        vertices = np.array(self.get_contour_polygon(img))
-        vertices[:, 1] = -vertices[:, 1]
-        x_min, y_min = np.min(vertices, axis=0)
-        x_max, y_max = np.max(vertices, axis=0)
-        center = np.array([(x_min + x_max)/2, (y_min + y_max)/2])
-        vertices_centered = vertices - center
-        self.polygon = Polygon(vertices_centered)
-
-
-    def get_contour_polygon(self, img: np.ndarray) -> list[tuple[int, int]]:
-        """ Iterates over a closed line in a image and returns the
-            vertices that describe such polygon's line. """
-
-        height, width = img.shape
-        initial_x = -1
-        initial_z = -1
-        points = []
-
-        # Get the first contour point
-        found = False
-        for z in range(1, height - 1):
-            for x in range(1, width - 1):
-                if img[z, x] == 0xff:
-                    initial_x = x
-                    initial_z = z
-                    found = True
-                    break
-            if found: break
-
-        # Iterate through the pixel line
-        directions = [(1,0),(0,1),(-1,0),(0,-1)]
-        previous_x = initial_x
-        previous_z = initial_z
-        current_x = initial_x
-        current_z = initial_z
-
-        while True:
-            # Verify if the current pixel is a vertex.
-            horz = img[current_z, current_x - 1] | img[current_z, current_x + 1]
-            vert = img[current_z - 1, current_x] | img[current_z + 1, current_x]
-
-            if horz == 0xff and vert == 0xff:
-                # Vertex found (x, z)
-                points.append((current_x, current_z))
-
-            for dx, dz in directions:
-                next_x = current_x + dx
-                next_z = current_z + dz
-
-                if ((img[next_z, next_x] == 0xff) and
-                    (next_x != previous_x or next_z != previous_z)):
-                    previous_x = current_x
-                    previous_z = current_z
-                    current_x = next_x
-                    current_z = next_z
-                    break
-
-            if current_x == initial_x and current_z == initial_z:
-                # Stop when returning to the initial point
-                break
-        return points
-    
-    
     def rasterization_segments(self, line: Line3D, step: float, bounds) -> list[tuple[float, float]]:
         """ Intersect a polygon with lines and collect the resulting segemnts """
         # Calculate the direction of the segments

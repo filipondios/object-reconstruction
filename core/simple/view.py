@@ -1,6 +1,6 @@
 from pathlib import Path
 from shapely.geometry import Point
-from core.complex.view import View as ComplexView
+from core.base_view import BaseView
 from sympy import Matrix
 from enum import Enum
 
@@ -11,7 +11,7 @@ class DirectionPlane(Enum):
     YZ = 0x2
 
 
-class View(ComplexView):
+class View(BaseView):
 
     bounds: tuple[float, float, float, float]
 
