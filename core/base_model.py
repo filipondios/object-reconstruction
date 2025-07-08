@@ -9,7 +9,8 @@ class BaseModel:
 
     views: list[BaseView]
     path: str
-
+    bounds: tuple[float, float, float, float, float, float]
+    
     def __init__(self, path: str, viewClass: BaseView):
         """" Initializes a Model, loading all the available views """
         self.views = [viewClass(f) for f in Path(path).iterdir() if f.is_dir()]
@@ -28,6 +29,10 @@ class BaseModel:
         name = 'A model has been found at: %s' % self.path
         print(f'{name}.\nThe views found of the model are:\n{table}')
 
+        # Calculate the model's bounding box 
+        # (necessary for rendering)
+        self.calculate_model_bounds()
+
         # Model reconstruction process
         print('[+] Starting initial reconstruction')
         self.initial_reconstruction()
@@ -35,6 +40,22 @@ class BaseModel:
         self.refine_model()
         print('[+] Generating surface')
         self.generate_surface()
+
+
+    def calculate_model_bounds(self) -> None:
+        """ Calculate the bounding box that encompasses all views """
+        # remember, view bounds = (minXi, minZi, maxXi, maxZi)
+        bounds = list(self.views[0].polygon.bounds)
+
+        for view in self.views[1:]:
+            view_bounds = view.polygon.bounds
+            bounds[0] = min(bounds[0], view_bounds[0])
+            bounds[1] = min(bounds[1], view_bounds[1])
+            bounds[2] = max(bounds[2], view_bounds[2])
+            bounds[3] = max(bounds[3], view_bounds[3])
+
+        # Returns the final box defining tuple (minX, minY, minZ, maxX, maxY, maxZ)
+        self.bounds = (bounds[0], bounds[2], bounds[1], bounds[3], bounds[1], bounds[3])
 
 
     @abstractmethod

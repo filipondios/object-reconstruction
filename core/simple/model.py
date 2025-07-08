@@ -8,7 +8,6 @@ class Model(BaseModel):
 
     resolution: int
     voxel_space: np.ndarray[np.bool_]
-    bounds: tuple[float, float, float, float, float, float]
     cubes: list[tuple[float, float, float]]
     cube_size: tuple[float, float, float]
 
@@ -21,23 +20,6 @@ class Model(BaseModel):
     def initial_reconstruction(self, _=None) -> None:
         """ Initializes the voxel space """
         self.voxel_space = np.ones((self.resolution,)*3, dtype=bool)
-        self.bounds = self.calculate_space_bounds()
-
-
-    def calculate_space_bounds(self) -> tuple[float, float, float, float, float, float]:
-        """ Calculate the bounding box that encompasses all views """
-        # remember, view bounds = (minXi, minZi, maxXi, maxZi)
-        bounds = list(self.views[0].bounds)
-
-        for view in self.views[1:]:
-            view_bounds = view.bounds
-            bounds[0] = min(bounds[0], view_bounds[0])
-            bounds[1] = min(bounds[1], view_bounds[1])
-            bounds[2] = max(bounds[2], view_bounds[2])
-            bounds[3] = max(bounds[3], view_bounds[3])
-        
-        # Returns the final box defining tuple (minX, minY, minZ, maxX, maxY, maxZ)
-        return (bounds[0], bounds[2], bounds[1], bounds[3], bounds[1], bounds[3])
 
 
     def refine_model(self) -> None:

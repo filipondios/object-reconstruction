@@ -13,12 +13,8 @@ class DirectionPlane(Enum):
 
 class View(BaseView):
 
-    bounds: tuple[float, float, float, float]
-
     def __init__(self, path: Path):
         super().__init__(path)
-        min_x, min_y, max_x, max_y = self.polygon.bounds
-        self.bounds = (min_x, min_y, max_x, max_y)
 
 
     def is_point_inside_contour(self, point_2d):
