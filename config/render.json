@@ -1,0 +1,22 @@
+{
+    "camera": {
+        "speed": 0.02,
+        "margin": -0.1,
+        "fovy": 60,
+        "initial_angles": {
+            "x": 45,
+            "y": 45,
+            "z": 45
+        }
+    },
+    "ui_base": {
+        "canvas_width": 1366,
+        "canvas_height": 768,
+        "aspect_ratio": {
+            "width": 16,
+            "height": 9
+        },
+        "font_size": 20,
+        "textbox_rectangle": [10, 10, 500, 130]
+    }
+}

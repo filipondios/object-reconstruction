@@ -1,77 +1,108 @@
 import pyray as rl
-from core.base_model import BaseModel
 import math
+import json
+import os
+from core.base_model import BaseModel
 
 
 class ModelRender:
 
+    camera_speed: float
+    camera_margin: float
+    camera_fovy: float
+    initial_view_angles: tuple[float, float, float]
+
+    base_width: int
+    base_height: int
+    aspect_ratio: tuple[int, int]
+    text_fontsize: int
+    box: tuple[int, int, int, int]
+
     camera: rl.Camera3D
-    model: BaseModel
+    model:  BaseModel
     horizontal_rotation_axis: rl.Vector3
-    vertical_rotation_axis: rl.Vector3
+    vertical_rotation_axis:   rl.Vector3
+
 
     def __init__(self, model: BaseModel):
-        """ Initializes the 3D camera and space """
+        """ Initializes the 3D camera and space using the default 
+            parameters from the config file 'config/render.json'. """
+
+        with open(os.path.join('config', 'render.json'), 'r') as file:
+            data = json.load(file)
+            ui_base = data['ui_base']
+            camera = data['camera']
+
+            self.camera_speed = camera['speed']
+            self.camera_margin = camera['margin']
+            self.camera_fovy = camera['fovy']
+            angles = camera['initial_angles']
+            self.initial_view_angles = (angles['x'], angles['y'], angles['z'])
+
+            self.base_width = ui_base['canvas_width']
+            self.base_height = ui_base['canvas_height']           
+            aspect_ratio = ui_base['aspect_ratio']
+            self.aspect_ratio = (aspect_ratio['width'], aspect_ratio['height'])
+            self.text_fontsize = ui_base['font_size']
+            self.box = tuple(ui_base['textbox_rectangle'])
         self.model = model
-        self.origin = rl.Vector3(0,0,0)
 
-        self.camera = rl.Camera3D(self.calculate_camera_position(), self.origin,
-            rl.Vector3(0,1,0), 60., rl.CameraProjection.CAMERA_PERSPECTIVE)
-        self.horizontal_rotation_axis = rl.vector3_normalize(rl.Vector3(
-            self.camera.position.z, 0., -self.camera.position.x))
-        self.vertical_rotation_axis = rl.Vector3(0,1,0)
+        # Initialize the render camera based on the model's bounding box
+        position = self.calculate_camera_position()
+        self.camera = rl.Camera3D(position, rl.Vector3(0,0,0), rl.Vector3(0,1,0),
+            self.camera_fovy, rl.CameraProjection.CAMERA_PERSPECTIVE)
 
-        self.rotation_speed = 0.02
-        self.text_fontsize = 20
-        self.box = (10, 10, 500, 130)
-        self.base_width = 1366
-        self.base_height = 768
+        # Create two vectors to rotate the camera around the model
+        self.horizontal_rotation_axis = rl.vector3_normalize(rl.Vector3(position.z, 0., -position.x))
+        self.vertical_rotation_axis = self.camera.up
 
 
     def calculate_camera_position(self) -> rl.Vector3:
         """
-        Calculates a camera position such that the entire model
-        (bounded by its bounding box) is guaranteed to be visible
-        in the view frustum, regardless of its size.
+        Calculates a camera position such that the entire model (bounded by
+        its bounding box) is guaranteed to be visible in the view frustum,
+        regardless of its size.
         """
 
-        min_x, max_x, min_y, max_y, min_z, max_z = self.model.bounds
+        (min_x, max_x, min_y, max_y, min_z, max_z) = self.model.bounds
+
+        # Calculate model's bounding box center
         center = rl.Vector3(
             (min_x + max_x) / 2.0,
             (min_y + max_y) / 2.0,
-            (min_z + max_z) / 2.0
-        )
+            (min_z + max_z) / 2.0)
 
         # Bounding sphere radius
-        dx = (max_x - min_x) / 2.0
-        dy = (max_y - min_y) / 2.0
-        dz = (max_z - min_z) / 2.0
-        radius = math.sqrt(dx * dx + dy * dy + dz * dz)
+        rx = (max_x - min_x) / 2.0
+        ry = (max_y - min_y) / 2.0
+        rz = (max_z - min_z) / 2.0
+        radius = math.sqrt(rx * rx + ry * ry + rz * rz)
 
-        # Camera vertical field of view (degrees) -> radians
-        fov_y_degrees = 60.0
-        fov_y_radians = math.radians(fov_y_degrees)
-
-        # Approximate screen aspect ratio (widescreen)
-        aspect_ratio = 16.0 / 9.0
+        # Calculate screen aspect ratio and field of view constraints
+        aspect_ratio = self.aspect_ratio[0] / self.aspect_ratio[1]
+        fov_y_radians = math.radians(self.camera_fovy)
         fov_x_radians = 2.0 * math.atan(math.tan(fov_y_radians / 2.0) * aspect_ratio)
 
+        # Determine minimum distance to fit entire model in view
         limiting_fov = min(fov_y_radians, fov_x_radians)
         distance = radius / math.sin(limiting_fov / 2.0)
-        distance *= 1.2 # safety margin (20%) to avoid clipping
+        distance *= (1 + self.camera_margin)
 
-        offset = rl.Vector3(
-            distance * 0.577,
-            distance * 0.577,
-            distance * 0.577
-        )
-        return rl.vector3_add(center, offset)
+        # Calculate the camera angle offset over the 'center' vector
+        angle_x_rad = math.radians(self.initial_view_angles[0])
+        angle_y_rad = math.radians(self.initial_view_angles[1])
+        angle_z_rad = math.radians(self.initial_view_angles[2])
+
+        offset_x = distance * math.sin(angle_x_rad)
+        offset_y = distance * math.sin(angle_y_rad)
+        offset_z = distance * math.sin(angle_z_rad)
+        return rl.vector3_add(center, rl.Vector3(offset_x, offset_y, offset_z))
 
 
     def rotate_horizontally(self, clockwise: bool):
         """ Rotates the camera arround the vertical axis """
-        if clockwise: speed = self.rotation_speed
-        else: speed = -self.rotation_speed
+        if clockwise: speed = self.camera_speed
+        else: speed = -self.camera_speed
 
         self.camera.position = rl.vector3_rotate_by_axis_angle(
             self.camera.position, self.vertical_rotation_axis,
@@ -88,8 +119,8 @@ class ModelRender:
 
     def rotate_vertically(self, clockwise: bool):
         """ Rotates the camera arround an axis in the ZX plane """
-        if clockwise: speed = self.rotation_speed
-        else: speed = -self.rotation_speed
+        if clockwise: speed = self.camera_speed
+        else: speed = -self.camera_speed
 
         self.camera.position = rl.vector3_rotate_by_axis_angle(
             self.camera.position, self.horizontal_rotation_axis,
@@ -113,7 +144,7 @@ class ModelRender:
         elif(rl.is_key_down(rl.KeyboardKey.KEY_DOWN)):
             self.rotate_vertically(False)
             rotated = True
-        if not rotated: self.rotate_horizontally(True)
+        #if not rotated: self.rotate_horizontally(True)
 
 
     def initialize(self):
