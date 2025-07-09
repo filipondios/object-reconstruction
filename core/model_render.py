@@ -27,26 +27,36 @@ class ModelRender:
     def __init__(self, model: BaseModel):
         """ Initializes the 3D camera and space using the default 
             parameters from the config file 'config/render.json'. """
+        self.model = model       
+        self.load_config(os.path.join('config', 'render.json'))
+        self.setup_camera()
 
-        with open(os.path.join('config', 'render.json'), 'r') as file:
+    
+    def load_config(self, config_path: str):
+        """ Loads the render configuration from a JSON file. """
+        with open(config_path, 'r') as file:
             data = json.load(file)
             ui_base = data['ui_base']
             camera = data['camera']
 
+            # Parse camera config
             self.camera_speed = camera['speed']
             self.camera_margin = camera['margin']
             self.camera_fovy = camera['fovy']
             angles = camera['initial_angles']
             self.initial_view_angles = (angles['x'], angles['y'], angles['z'])
 
+            # Parse UI config
             self.base_width = ui_base['canvas_width']
             self.base_height = ui_base['canvas_height']           
             aspect_ratio = ui_base['aspect_ratio']
             self.aspect_ratio = (aspect_ratio['width'], aspect_ratio['height'])
             self.text_fontsize = ui_base['font_size']
             self.box = tuple(ui_base['textbox_rectangle'])
-        self.model = model
 
+
+    def setup_camera(self):
+        """ Sets up the camera with the given position, target and up vector. """
         # Initialize the render camera based on the model's bounding box
         position = self.calculate_camera_position()
         self.camera = rl.Camera3D(position, rl.Vector3(0,0,0), rl.Vector3(0,1,0),
@@ -130,21 +140,15 @@ class ModelRender:
     def move_camera(self):
         """ Rotates the camera automatically if the user is not
             pressing a rotation key (one of the arrow keys). """
-        rotated = False
 
         if(rl.is_key_down(rl.KeyboardKey.KEY_RIGHT)):
             self.rotate_horizontally(False)
-            rotated = True
         elif(rl.is_key_down(rl.KeyboardKey.KEY_LEFT)):
             self.rotate_horizontally(True)
-            rotated = True
         if(rl.is_key_down(rl.KeyboardKey.KEY_UP)):
             self.rotate_vertically(True)
-            rotated = True    
         elif(rl.is_key_down(rl.KeyboardKey.KEY_DOWN)):
             self.rotate_vertically(False)
-            rotated = True
-        #if not rotated: self.rotate_horizontally(True)
 
 
     def initialize(self):
@@ -170,6 +174,8 @@ class ModelRender:
 
     
     def zoom(self):
+        """ Zooms the camera in or out based on mouse wheel movement.
+            If there is no movement, the camera position remains unchanged. """
         zoom = rl.get_mouse_wheel_move()
         if zoom == 0:
             return
@@ -186,45 +192,63 @@ class ModelRender:
             self.camera.position = rl.vector3_subtract(self.camera.position, movement)
 
 
+    def draw_help_box(self):
+        """ Draws the help box with instructions for the user. """
+        header_height = int(self.box[3] * 0.25)
+        body_height = self.box[3] - header_height
+
+        # Define rectangles
+        header_rect = rl.Rectangle(self.box[0], self.box[1], self.box[2], header_height)
+        body_rect = rl.Rectangle(self.box[0], self.box[1] + header_height, self.box[2], body_height)
+
+        # Colors
+        header_bg_color = rl.Color(204, 204, 204, 255)
+        header_text_color = rl.Color(0, 0, 0, 255)
+        body_bg_color = rl.Color(240, 240, 240, 136)
+        body_text_color = rl.Color(51, 51, 51, 255)
+        border_color = rl.Color(170, 170, 170, 255)
+
+        # Draw header
+        rl.draw_rectangle_rec(header_rect, header_bg_color)
+        rl.draw_text(
+            'Object camera controls:',
+            int(header_rect.x + 10),
+            int(header_rect.y + header_height // 4),
+            self.text_fontsize,
+            header_text_color
+        )
+
+        rl.draw_rectangle_rec(body_rect, body_bg_color)
+        rl.draw_rectangle_lines_ex(self.box, 2 * self.height_scale, border_color)
+
+        # Add a top padding
+        top_padding = 15 * self.height_scale
+        side_padding = 10 * self.width_scale
+        body_fontsize = max(1, self.text_fontsize - 1)
+        line_spacing = int(body_fontsize * 1.5)
+
+        body_lines = [
+            '[Esc] to close the program',
+            '[Mouse wheel] to zoom in-out',
+            '[Right | Left | Up | Down] to rotate the object'
+        ]
+
+        for i, line in enumerate(body_lines):
+            rl.draw_text(line, int(body_rect.x + side_padding),
+                int(body_rect.y + top_padding + i * line_spacing),
+                body_fontsize, body_text_color)
+
+
     def render_loop(self):
         """ Draws the reconstructed model """
         while not rl.window_should_close():
             self.move_camera()
             self.zoom()
-
             rl.begin_drawing()
-            rl.clear_background(rl.BLACK)            
+            rl.clear_background(rl.Color(10,10,10,255))            
             rl.begin_mode_3d(self.camera)
             self.model.draw_model()
             rl.end_mode_3d()
-
-            # Dibujar un rectangulo donde mostrar informacion
-            rl.draw_rectangle_rec(self.box, rl.fade(rl.SKYBLUE, 0.5))
-            rl.draw_rectangle_lines_ex(self.box, 2 * self.height_scale, rl.BLUE)
-
-            rl.draw_text(
-                'Object camera controls:',
-                self.box[0] * 2,
-                self.box[1] * 2,
-                self.text_fontsize,
-                rl.BLACK)
-            rl.draw_text(
-                '[Esc] to close the program',
-                self.box[0] * 2,
-                int(self.box[1] * 5),
-                self.text_fontsize,
-                rl.fade(rl.BLACK, 0.7))
-            rl.draw_text(
-                '[Mouse wheel] to zoom in-out',
-                self.box[0] * 2,
-                int(self.box[1] * 8),
-                self.text_fontsize,
-                rl.fade(rl.BLACK, 0.7))
-            rl.draw_text(
-                '[Right/Left/Up/Down] to rotate the object',
-                self.box[0] * 2,
-                int(self.box[1] * 11),
-                self.text_fontsize,
-                rl.fade(rl.BLACK, 0.7))
+            self.draw_help_box()
             rl.end_drawing()
         rl.close_window()
