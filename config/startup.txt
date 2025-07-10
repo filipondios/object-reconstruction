@@ -1,0 +1,11 @@
+________ ___.        ____________                  +------+
+\_____  \\_ |__     |__\______   \ ____   ____    /|     /|
+ /   |   \| __ \    |  ||       _// __ \_/ ___\  +------+ |
+/    |    \ \_\ \   |  ||    |   \  ___/\  \___  | |    | |
+\_______  /___  /\__|  ||____|_  /\___  >\___  > | +----+-+
+        \/    \/\______|       \/     \/     \/  |/     |/
+        ObjRec 1.0.0 - 3D object reconstruction  +------+
+                   @filipondios 2025
+
+[wiki]: https://github.com/filipondios/object-reconstruction/wiki
+[issues]: https://github.com/filipondios/object-reconstruction/issues
