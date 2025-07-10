@@ -25,15 +25,14 @@ class ModelRender:
 
 
     def __init__(self, model: BaseModel):
-        """ Initializes the 3D camera and space using the default 
-            parameters from the config file 'config/render.json'. """
+        """Initializes the 3D camera and space using config."""
         self.model = model       
         self.load_config(os.path.join('config', 'render.json'))
         self.setup_camera()
 
     
     def load_config(self, config_path: str):
-        """ Loads the render configuration from a JSON file. """
+        """Loads the render configuration from a JSON file."""
         with open(config_path, 'r') as file:
             data = json.load(file)
             ui_base = data['ui_base']
@@ -45,6 +44,7 @@ class ModelRender:
             self.camera_fovy = camera['fovy']
             angles = camera['initial_angles']
             self.initial_view_angles = (angles['x'], angles['y'], angles['z'])
+            self.auto_rotate = camera['auto_rotate']
 
             # Parse UI config
             self.base_width = ui_base['canvas_width']
@@ -56,49 +56,37 @@ class ModelRender:
 
 
     def setup_camera(self):
-        """ Sets up the camera with the given position, target and up vector. """
-        # Initialize the render camera based on the model's bounding box
+        """Sets up the camera with the given position, target and up vector."""
         position = self.calculate_camera_position()
         self.camera = rl.Camera3D(position, rl.Vector3(0,0,0), rl.Vector3(0,1,0),
             self.camera_fovy, rl.CameraProjection.CAMERA_PERSPECTIVE)
 
-        # Create two vectors to rotate the camera around the model
         self.horizontal_rotation_axis = rl.vector3_normalize(rl.Vector3(position.z, 0., -position.x))
         self.vertical_rotation_axis = self.camera.up
 
 
     def calculate_camera_position(self) -> rl.Vector3:
-        """
-        Calculates a camera position such that the entire model (bounded by
-        its bounding box) is guaranteed to be visible in the view frustum,
-        regardless of its size.
-        """
-
+        """Computes camera position to fit the model."""
         (min_x, max_x, min_y, max_y, min_z, max_z) = self.model.bounds
 
-        # Calculate model's bounding box center
         center = rl.Vector3(
             (min_x + max_x) / 2.0,
             (min_y + max_y) / 2.0,
             (min_z + max_z) / 2.0)
 
-        # Bounding sphere radius
         rx = (max_x - min_x) / 2.0
         ry = (max_y - min_y) / 2.0
         rz = (max_z - min_z) / 2.0
         radius = math.sqrt(rx * rx + ry * ry + rz * rz)
 
-        # Calculate screen aspect ratio and field of view constraints
         aspect_ratio = self.aspect_ratio[0] / self.aspect_ratio[1]
         fov_y_radians = math.radians(self.camera_fovy)
         fov_x_radians = 2.0 * math.atan(math.tan(fov_y_radians / 2.0) * aspect_ratio)
 
-        # Determine minimum distance to fit entire model in view
         limiting_fov = min(fov_y_radians, fov_x_radians)
         distance = radius / math.sin(limiting_fov / 2.0)
         distance *= (1 + self.camera_margin)
 
-        # Calculate the camera angle offset over the 'center' vector
         angle_x_rad = math.radians(self.initial_view_angles[0])
         angle_y_rad = math.radians(self.initial_view_angles[1])
         angle_z_rad = math.radians(self.initial_view_angles[2])
@@ -111,43 +99,36 @@ class ModelRender:
 
     def rotate_horizontally(self, clockwise: bool):
         """ Rotates the camera arround the vertical axis """
-        if clockwise: speed = self.camera_speed
-        else: speed = -self.camera_speed
-
+        speed = self.camera_speed if clockwise else -self.camera_speed
         self.camera.position = rl.vector3_rotate_by_axis_angle(
-            self.camera.position, self.vertical_rotation_axis,
-            speed)
-        
+            self.camera.position, self.vertical_rotation_axis, speed)
         axis = rl.vector3_rotate_by_axis_angle(
-            self.horizontal_rotation_axis, self.vertical_rotation_axis,
-            speed)
-        
-        self.horizontal_rotation_axis.x = axis.x
-        self.horizontal_rotation_axis.y = axis.y
-        self.horizontal_rotation_axis.z = axis.z
+            self.horizontal_rotation_axis, self.vertical_rotation_axis, speed)
+        self.horizontal_rotation_axis = axis
 
 
     def rotate_vertically(self, clockwise: bool):
         """ Rotates the camera arround an axis in the ZX plane """
-        if clockwise: speed = self.camera_speed
-        else: speed = -self.camera_speed
-
+        speed = self.camera_speed if clockwise else -self.camera_speed
         self.camera.position = rl.vector3_rotate_by_axis_angle(
-            self.camera.position, self.horizontal_rotation_axis,
-            speed)
+            self.camera.position, self.horizontal_rotation_axis, speed)
 
 
     def move_camera(self):
-        """ Rotates the camera automatically if the user is not
-            pressing a rotation key (one of the arrow keys). """
+        """ Rotates the camera automatically if auto-rotate 
+            is enabled, else checks for user input. """
+        if rl.is_key_pressed(rl.KeyboardKey.KEY_SPACE):
+            self.auto_rotate = not self.auto_rotate
 
-        if(rl.is_key_down(rl.KeyboardKey.KEY_RIGHT)):
+        if self.auto_rotate:
+            self.rotate_horizontally(True)       
+        elif rl.is_key_down(rl.KeyboardKey.KEY_RIGHT):
             self.rotate_horizontally(False)
-        elif(rl.is_key_down(rl.KeyboardKey.KEY_LEFT)):
+        elif rl.is_key_down(rl.KeyboardKey.KEY_LEFT):
             self.rotate_horizontally(True)
-        if(rl.is_key_down(rl.KeyboardKey.KEY_UP)):
+        if rl.is_key_down(rl.KeyboardKey.KEY_UP):
             self.rotate_vertically(True)
-        elif(rl.is_key_down(rl.KeyboardKey.KEY_DOWN)):
+        elif rl.is_key_down(rl.KeyboardKey.KEY_DOWN):
             self.rotate_vertically(False)
 
 
@@ -163,8 +144,8 @@ class ModelRender:
         w = rl.get_monitor_width(monitor)
         rl.set_window_size(w, h)
 
-        self.width_scale  = int(w/self.base_width)
-        self.height_scale = int(h/self.base_height)
+        self.width_scale  = int(w / self.base_width)
+        self.height_scale = int(h / self.base_height)
         self.box = (
             self.box[0] * self.width_scale,
             self.box[1] * self.height_scale,
@@ -172,14 +153,14 @@ class ModelRender:
             self.box[3] * self.height_scale)
         self.text_fontsize = self.text_fontsize * self.width_scale
 
-    
+
     def zoom(self):
         """ Zooms the camera in or out based on mouse wheel movement.
             If there is no movement, the camera position remains unchanged. """
         zoom = rl.get_mouse_wheel_move()
         if zoom == 0:
             return
-        
+
         if zoom < 0:
             # zoom out, away from the object
             norm = rl.vector3_normalize(self.camera.position)
@@ -206,6 +187,7 @@ class ModelRender:
         header_text_color = rl.Color(0, 0, 0, 255)
         body_bg_color = rl.Color(240, 240, 240, 136)
         body_text_color = rl.Color(51, 51, 51, 255)
+        key_text_color = rl.Color(30, 30, 30, 255)
         border_color = rl.Color(170, 170, 170, 255)
 
         # Draw header
@@ -228,15 +210,19 @@ class ModelRender:
         line_spacing = int(body_fontsize * 1.5)
 
         body_lines = [
-            '[Esc] to close the program',
-            '[Mouse wheel] to zoom in-out',
-            '[Right | Left | Up | Down] to rotate the object'
+            ("[Esc]", "to close the program"),
+            ("[Mouse wheel]", "to zoom in-out"),
+            ("[Right | Left | Up | Down]", "to rotate the object"),
+            ("[Space]", "to toggle auto-rotate"),
         ]
 
-        for i, line in enumerate(body_lines):
-            rl.draw_text(line, int(body_rect.x + side_padding),
-                int(body_rect.y + top_padding + i * line_spacing),
-                body_fontsize, body_text_color)
+        for i, (key_part, description_part) in enumerate(body_lines):
+            cursor_x = int(body_rect.x + side_padding)
+            cursor_y = int(body_rect.y + top_padding + i * line_spacing)
+            
+            rl.draw_text(key_part, cursor_x, cursor_y, body_fontsize, key_text_color)
+            cursor_x += rl.measure_text(key_part + ' ', body_fontsize)
+            rl.draw_text(description_part, cursor_x, cursor_y, body_fontsize, body_text_color)
 
 
     def render_loop(self):
@@ -245,10 +231,12 @@ class ModelRender:
             self.move_camera()
             self.zoom()
             rl.begin_drawing()
+
             rl.clear_background(rl.Color(10,10,10,255))            
             rl.begin_mode_3d(self.camera)
             self.model.draw_model()
             rl.end_mode_3d()
+
             self.draw_help_box()
             rl.end_drawing()
         rl.close_window()
