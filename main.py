@@ -1,9 +1,13 @@
-from argparse import ArgumentParser
-from core.complex.model import Model as ComplexModel
-from core.simple.model import Model as SimpleModel
-from core.model_render import ModelRender
-
 if __name__ == '__main__':
+
+    # Print startup information
+    file = open('config/startup.txt', 'r')
+    print(file.read())
+
+    from argparse import ArgumentParser
+    from core.complex.model import Model as ComplexModel
+    from core.simple.model import Model as SimpleModel
+    from core.model_render import ModelRender
 
     # Argument parsing (program options)
     parser = ArgumentParser()
