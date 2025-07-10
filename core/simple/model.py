@@ -11,10 +11,10 @@ class Model(BaseModel):
     cubes: list[tuple[float, float, float]]
     cube_size: tuple[float, float, float]
 
-    def __init__(self, path: str, resolution: int):
+    def __init__(self, path: str, print_info: bool, resolution: int):
         self.resolution = resolution
         self.cubes = []
-        super().__init__(path, View)
+        super().__init__(path, print_info, View)
 
 
     def initial_reconstruction(self, _=None) -> None:
@@ -84,3 +84,11 @@ class Model(BaseModel):
             center = rl.Vector3(cx, cz, cy)
             rl.draw_cube(center, size[0], size[1], size[2], rl.WHITE)
             rl.draw_cube_wires(center, size[0], size[1], size[2], rl.BLACK)
+
+
+    def additional_info(self) -> None:
+        info = (f"[+] Model additional information:\n"
+            f"Model bounds: {self.bounds}\n"
+            f"Number of voxels: {self.resolution ** 3}\n"
+            f"Number of active voxels: {len(self.cubes)}")
+        print(info)

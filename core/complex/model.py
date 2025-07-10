@@ -17,12 +17,12 @@ class Model(BaseModel):
 
     planes: dict[float, tuple[Plane, list[list[Point3D]]]]
 
-    def __init__(self, path: str, step: float):
+    def __init__(self, path: str, print_info: bool, step: float):
         self.planes = {}
         self.edges = []
         self.step = step
         self.planes_normal = Axis.Null
-        super().__init__(path, View)
+        super().__init__(path, print_info, View)
 
 
     def initial_reconstruction(self) -> None:
@@ -185,3 +185,21 @@ class Model(BaseModel):
                     va = rl.Vector3(a[0], a[2], a[1])
                     vb = rl.Vector3(b[0], b[2], b[1])
                     rl.draw_line_3d(va, vb, rl.WHITE)
+
+
+    def additional_info(self) -> None:
+        planes = len(self.planes)
+        polygons = 0
+        vertices = 0
+
+        for _, (_, poly_list) in self.planes.items():
+            polygons += len(poly_list)
+            for polygon in poly_list:
+                vertices += len(polygon)
+
+        info = (f"[+] Model additional information:\n"
+            f"Model bounds: {self.bounds}\n"
+            f"Number of planes: {planes}\n"
+            f"Number of polygons: {polygons}\n"
+            f"Number of vertices: {vertices}\n")
+        print(info)
