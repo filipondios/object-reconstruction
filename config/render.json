@@ -1,5 +1,6 @@
 {
     "camera": {
+        "auto_rotate": false,
         "speed": 0.02,
         "margin": -0.1,
         "fovy": 60,
@@ -17,6 +18,6 @@
             "height": 9
         },
         "font_size": 20,
-        "textbox_rectangle": [10, 10, 500, 130]
+        "textbox_rectangle": [10, 10, 500, 180]
     }
 }
