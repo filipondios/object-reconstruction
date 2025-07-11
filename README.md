@@ -31,7 +31,7 @@ los [requerimientos](requirements.txt).
 python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 ```
 
-| Parametro            | Obligatorio        | Valor por defecto | Descripción |
+| Parámetro            | Obligatorio        | Valor por defecto | Descripción |
 |:--------------------:|:------------------:|:-----------------:|:------------|
 | `-p`                 | si                 | ninguno           | Ruta al modelo a reconstruir. |
 | `-c`                 | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
