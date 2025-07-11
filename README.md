@@ -35,6 +35,6 @@ python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 |:--------------------:|:------------------:|:-----------------:|:------------|
 | `-p`                 | si                 | ninguno           | Ruta al modelo a reconstruir. |
 | `-c`                 | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
-| `-s`                 | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendra el modelo reconstruido. | 
-| `-r`                 | no                 | 8                 | Resolución del espacio de voxeles para el algoritmo `simple`. Cuanto mayor sea la resolucion del espacio del voxeles, mayor precisión tendra el modelo reconstruido.  |
-| `-i`                 | no                 | ninguno           | Mustra mas informacion sobre el modelo reconstruido al final del proceso de reconstruccion. |
+| `-s`                 | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendrá el modelo reconstruido. | 
+| `-r`                 | no                 | 8                 | Resolución del espacio de vóxeles para el algoritmo `simple`. Cuanto mayor sea la resolución del espacio del vóxeles, mayor precisión tendra el modelo reconstruido. |
+| `-i`                 | no                 | ninguno           | Mustra mas información sobre el modelo reconstruido al final del proceso de reconstrucción. |
