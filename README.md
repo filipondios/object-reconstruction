@@ -1,18 +1,16 @@
-# Object Reconstruction
+
+# Reconstrucción de Objetos
 
 Este repositorio contiene el código fuente de mi Trabajo de Fin de Grado (TFG).
 
 ## Descripción
 
-El objetivo de este proyecto es comparar dos enfoques diferentes para la reconstrucción de objetos tridimensionales a partir de sus vistas ortogonales (frontal, lateral y superior), bajo un conjunto de restricciones concretas:
-
-- Los objetos **no contienen rampas**: todas las caras son paralelas a al menos uno de los ejes del espacio (x, y, z).
-- Los objetos **no tienen superficies circulares**: todas las caras son planas.
-- Los objetos **no tienen huecos interiores**.
+El objetivo de este proyecto es comparar dos enfoques diferentes para la reconstrucción de objetos tridimensionales a partir de sus vistas ortogonales (frontal, lateral, superior y sus opuestos), bajo un conjunto de restricciones concretas. Los objetos **no contienen** rampas, 
+superficies circulares o huecos interiores.
 
 ## Algoritmos Comparados
 
-### 1. Algoritmo del Estado del Arte
+### `1.` Algoritmo del Estado del Arte
 
 Se ha seleccionado como algoritmo representativo del estado del arte a la tesis doctoral de Gálvez Lamolda:
 > Gálvez Lamolda, J. M. (1990). *Reconstrucción de objetos a partir de vistas bidimensionales y su reconocimiento mediante momentos 3D: Desarrollos técnicos y aplicaciones*. AccedaCRIS ULPGC.  
@@ -20,6 +18,23 @@ Se ha seleccionado como algoritmo representativo del estado del arte a la tesis 
 
 En dicho trabajo se presenta un algoritmo que teoricamente puede trabajar con todo tipo de objetos (incluyendo aquellos que no cumplen las restricciones descritas en la seccion anterior).
 
-### 2. Algoritmo Propuesto (Vóxeles)
+### `2.` Algoritmo Propuesto (Vóxeles)
 
 Por otro lado, el algoritmo que se ha implementado para ser comparado con el seleccionado del estado del arte está basado en [vóxeles](https://en.wikipedia.org/wiki/Voxel), los cuales ofrecen una solución perfecta para este problema ya que los objetos a tratar son perfectamente 'divisibles' visualmente en cubos.
+
+## Ejecución del programa
+
+El programa tiene como punto de entrada el archivo `main.py` que se encuentra en la raiz del proyecto. Asegurate de instalar antes de nada 
+los [requerimientos](requirements.txt).
+
+```bash
+python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
+```
+
+| Parametro            | Obligatorio        | Valor por defecto | Descripción |
+|:---------------------|:------------------:|:-----------------:|:------------|
+| `-p`, `--path`       | si                 | ninguno           | Ruta al modelo a reconstruir |
+| `-c`, `--complexity` | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
+| `-s`, `--step`       | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendra el modelo reconstruido. | 
+| `-r`, `--resolution` | no                 | 8                 | Resolución del espacio de voxeles para el algoritmo `simple`. Cuanto mayor sea la resolucion del espacio del voxeles, mayor precisión tendra el modelo reconstruido.  |
+| `-i`, `--info`       | no                 | ninguno           | Mustra mas informacion sobre el modelo reconstruido |
