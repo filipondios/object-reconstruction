@@ -32,9 +32,9 @@ python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 ```
 
 | Parametro            | Obligatorio        | Valor por defecto | Descripción |
-|:---------------------|:------------------:|:-----------------:|:------------|
-| `-p`, `--path`       | si                 | ninguno           | Ruta al modelo a reconstruir |
-| `-c`, `--complexity` | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
-| `-s`, `--step`       | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendra el modelo reconstruido. | 
-| `-r`, `--resolution` | no                 | 8                 | Resolución del espacio de voxeles para el algoritmo `simple`. Cuanto mayor sea la resolucion del espacio del voxeles, mayor precisión tendra el modelo reconstruido.  |
-| `-i`, `--info`       | no                 | ninguno           | Mustra mas informacion sobre el modelo reconstruido |
+|:--------------------:|:------------------:|:-----------------:|:------------|
+| `-p`                 | si                 | ninguno           | Ruta al modelo a reconstruir. |
+| `-c`                 | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
+| `-s`                 | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendra el modelo reconstruido. | 
+| `-r`                 | no                 | 8                 | Resolución del espacio de voxeles para el algoritmo `simple`. Cuanto mayor sea la resolucion del espacio del voxeles, mayor precisión tendra el modelo reconstruido.  |
+| `-i`                 | no                 | ninguno           | Mustra mas informacion sobre el modelo reconstruido al final del proceso de reconstruccion. |
