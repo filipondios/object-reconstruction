@@ -10,7 +10,7 @@ superficies circulares o huecos interiores.
 
 ## Algoritmos Comparados
 
-### `1.` Algoritmo del Estado del Arte
+### Algoritmo del Estado del Arte
 
 Se ha seleccionado como algoritmo representativo del estado del arte a la tesis doctoral de Gálvez Lamolda:
 > Gálvez Lamolda, J. M. (1990). *Reconstrucción de objetos a partir de vistas bidimensionales y su reconocimiento mediante momentos 3D: Desarrollos técnicos y aplicaciones*. AccedaCRIS ULPGC.  
@@ -18,7 +18,7 @@ Se ha seleccionado como algoritmo representativo del estado del arte a la tesis 
 
 En dicho trabajo se presenta un algoritmo que teoricamente puede trabajar con todo tipo de objetos (incluyendo aquellos que no cumplen las restricciones descritas en la seccion anterior).
 
-### `2.` Algoritmo Propuesto (Vóxeles)
+### Algoritmo Propuesto (Vóxeles)
 
 Por otro lado, el algoritmo que se ha implementado para ser comparado con el seleccionado del estado del arte está basado en [vóxeles](https://en.wikipedia.org/wiki/Voxel), los cuales ofrecen una solución perfecta para este problema ya que los objetos a tratar son perfectamente 'divisibles' visualmente en cubos.
 
