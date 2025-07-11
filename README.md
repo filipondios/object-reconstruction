@@ -38,3 +38,7 @@ python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 | `-s`                 | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendrá el modelo reconstruido. | 
 | `-r`                 | no                 | 8                 | Resolución del espacio de vóxeles para el algoritmo `simple`. Cuanto mayor sea la resolución del espacio del vóxeles, mayor precisión tendra el modelo reconstruido. |
 | `-i`                 | no                 | ninguno           | Mustra mas información sobre el modelo reconstruido al final del proceso de reconstrucción. |
+
+<!-- Demo video, just trying some models from the examples -->
+[![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
+
