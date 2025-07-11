@@ -57,7 +57,7 @@ class Model(BaseModel):
         print(f'[+] Using {view1.name} and {view2.name} for initial reconstruction.')
 
         # Calculate the axis aligned with the common line
-        axis_direction = tuple(Matrix(common_line.direction).normalized())
+        axis_direction = tuple(Matrix(common_line.direction).normalized().__abs__())
         axes = {(1,0,0): Axis.X, (0,1,0): Axis.Y, (0,0,1): Axis.Z}
         axis = axes[axis_direction]       
 
@@ -102,7 +102,17 @@ class Model(BaseModel):
 
 
     def refine_model(self) -> None:
+        _, (plane, _) = next(iter(self.planes.items()))
+        planes_normal = Matrix(plane.normal_vector)
+        
         for view in self.views:
+            # Ensure the actual view's line of vission is aligned with
+            # all the planes' normal, in order to ensure a full non-
+            # empty polygon intersections.
+            
+            if Matrix(view.vy).cross(planes_normal).norm() > 1e-6:
+                continue
+   
             print(f'[+] Using {view.name} to refine.')
             for (key, (plane, polygons)) in self.planes.items():
                 refined_polygons = []
@@ -119,61 +129,6 @@ class Model(BaseModel):
                         for point in intersection.exterior.coords]
                     refined_polygons.append(projection)
                 self.planes[key] = (plane, refined_polygons)
-
-
-    def generate_surface(self) -> None:
-        """ Generates the surface triangulation structure """
-        # Sort the planes using the normal axis
-        planes = list(self.planes.values())
-        if self.planes_normal == 'x': planes.sort(key=lambda pair: pair[0].p1.x)
-        if self.planes_normal == 'y': planes.sort(key=lambda pair: pair[0].p1.y)
-        if self.planes_normal == 'z': planes.sort(key=lambda pair: pair[0].p1.z)
-
-        # Get a perpendicular line to all planes
-        _, (plane, _) = next(iter(self.planes.items()))
-        line = Line3D(plane.p1, plane.normal_vector)
-
-        # Iterate the collection by pairs of planes
-        for ((plane1, poligons1), (plane2, poligons2)) in zip(planes, planes[1:]):
-            if len(poligons1) == 1 and len(poligons2) == 1:
-                # Case A: Both planes have 1 polygon
-                self.case_a_triangulate(poligons1[0], poligons2[0])
-            else:
-                # Case B: One of the planes has more that 1 polygon
-                # (1) Calculate an intermediate plane between each plane
-                p1 = plane1.intersection(line)[0]
-                p2 = plane2.intersection(line)[0]
-                m = Point3D((p1.x + p2.x)/2, (p1.y + p2.y)/2, (p1.z + p2.z)/2)
-                intermitiate = Plane(m, plane1.normal_vector)
-                self.case_b_triangulate(poligons1 + poligons2, intermitiate)
-
-
-    def case_a_triangulate(self, pol1: list[Point3D], pol2: list[Point3D]) -> None:
-        """ Calculates the triangulation for case A """
-        # (1) Calculate centroids and align both polygon's
-        centroid1 = self.calculate_centroid(pol1)
-        centroid2 = self.calculate_centroid(pol2)
-        translation = centroid2 - centroid1
-        aligned = [point + translation for point in pol1]
-
-        # (2) Calculate the segment (u, v) where w(u, v) is minimum
-        # (3) Calculate the triangulation graph
-
-
-    def case_b_triangulate(self, polygons: list[list[Point3D]], plane: Plane) -> None:
-        """ Calculates the triangulation for case B """
-        for polygon in polygons:
-            for point in polygon:
-                projection = plane.projection(point)
-                self.edges.append((point, projection))
-
-    
-    def calculate_centroid(self, polygon):
-        points = len(polygon)
-        centroid_x = sum(point.x for point in polygon) / points
-        centroid_y = sum(point.y for point in polygon) / points
-        centroid_z = sum(point.z for point in polygon) / points
-        return Point3D(centroid_x, centroid_y, centroid_z)
 
 
     def draw_model(self) -> None:
