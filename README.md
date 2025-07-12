@@ -44,32 +44,12 @@ python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 
 ## Estructura del Proyecto
 
-```
-proyecto/
-├── main.py
-├── core/
-│   ├── base_model.py
-│   ├── model_render.py
-│   ├── simple/
-│   │   ├── model.py
-│   │   └── view.py
-│   └── complex/
-│       ├── model.py
-│       └── view.py
-```
+El proyecto tiene como punto de entrada el archivo `main.py`. Este se encarga de parsear los argumentos del programa e iniciar el proceso de 
+reconstrucción. La reconstruccion de objetos se puede realizar mediante alguno de los algoritmos almacenados en `core/complex` o `core/simple`.
 
-### Componentes principales
+Ambos algoritmos hacen uso de las clases abstractas `BaseModel` y `BaseView`, pertenecientes a los archivos `core/base_model.py` y 
+`core/base_view.py` para describir los objetos reconstruidos y sus vistas.
 
-- `main.py`: Punto de entrada del programa. Gestiona los argumentos de línea de comandos y lanza el proceso de reconstrucción.
-- `core/base_model.py`: Define la clase base para los modelos de reconstrucción, con la lógica común para cargar vistas y coordinar el flujo general.
-- `core/model_render.py`: Sistema de renderizado 3D para visualizar el modelo reconstruido de forma interactiva.
 
-### Algoritmos
 
-#### Algoritmo Simple (Vóxeles)
-- `core/simple/model.py`: Reconstrucción en un espacio de vóxeles, eliminando los que no encajan con las vistas.
-- `core/simple/view.py`: Procesa las vistas para verificar la coherencia de los vóxeles con los contornos.
 
-#### Algoritmo Complejo (Estado del Arte)
-- `core/complex/model.py`: Implementa la lógica del algoritmo de Gálvez Lamolda con intersección de planos y refinamiento.
-- `core/complex/view.py`: Rasteriza las vistas y genera segmentos para las intersecciones.
