@@ -42,3 +42,34 @@ python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 <!-- Demo video, just trying some models from the examples -->
 [![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
 
+## Estructura del Proyecto
+
+```
+proyecto/
+├── main.py
+├── core/
+│   ├── base_model.py
+│   ├── model_render.py
+│   ├── simple/
+│   │   ├── model.py
+│   │   └── view.py
+│   └── complex/
+│       ├── model.py
+│       └── view.py
+```
+
+### Componentes principales
+
+- `main.py`: Punto de entrada del programa. Gestiona los argumentos de línea de comandos y lanza el proceso de reconstrucción.
+- `core/base_model.py`: Define la clase base para los modelos de reconstrucción, con la lógica común para cargar vistas y coordinar el flujo general.
+- `core/model_render.py`: Sistema de renderizado 3D para visualizar el modelo reconstruido de forma interactiva.
+
+### Algoritmos
+
+#### Algoritmo Simple (Vóxeles)
+- `core/simple/model.py`: Reconstrucción en un espacio de vóxeles, eliminando los que no encajan con las vistas.
+- `core/simple/view.py`: Procesa las vistas para verificar la coherencia de los vóxeles con los contornos.
+
+#### Algoritmo Complejo (Estado del Arte)
+- `core/complex/model.py`: Implementa la lógica del algoritmo de Gálvez Lamolda con intersección de planos y refinamiento.
+- `core/complex/view.py`: Rasteriza las vistas y genera segmentos para las intersecciones.
