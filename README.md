@@ -53,6 +53,7 @@ la clase `ModelRender` almacenada en `core/model_render.py`.
 
 
 ## Crear nuevos algoritmos de reconstrucción
+## La clase BaseModel
 
 Tal y como se ha explicado en el punto anterior, todos los algoritmos de este proyecto hacen uso de las clases `BaseModel` y `BaseView`. 
 La clase `BaseModel` contiene metodos abstractos que definen cada una de las etapas de reconstruccion y que han de ser sobreescritos
@@ -94,6 +95,10 @@ Tal y como se puede ver, en el constructor de la clase `BaseModel` se llaman a l
 secuencial y opcionalmente se muestra informacion adicional. Por otra parte, el metodo `draw_model` es usado en la clase 
 `ModelRender` para renderizar el modelo 3D usando la libreria [raylib](https://github.com/ryu577/pyray).
 
+> [!TIP]
+> La clase BaseModel tiene atributos adicionales que proporcionan mas informacion. Estos son: una lista de vistas del objeto
+> y una tupla que guarda las dimensiones o bounding box que encierran al objeto real. Para mas informacion, echale un vistazo
+> a la clase [BaseModel](core/base_model.py)
 
 
 
