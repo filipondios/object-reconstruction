@@ -104,11 +104,33 @@ secuencial y opcionalmente se muestra informacion adicional. Por otra parte, el 
 
 La idea tras la clase `BaseView` es almacenar toda la informacion relativa a una vista del modelo. Esto incluye la posicion y 
 orientacion de la camara a la hora de tomar una imagen del objeto a reconstruir, lo cual se traduce en tres vectores `Vx`, `Vy`,
-`Vz` y un punto `O`. 
+`Vz` y un punto `O`, tal y como se puede observar en la siguiente imagen:
 
+<div align='center'>
+<img width="500" alt="imagen" src="https://github.com/user-attachments/assets/25266148-5bb3-4982-a6d1-bd185c790d0d" />
+</div>
 
+Ademas de la informacion acerca de la camara, se guarda la linea poligonal (lista de puntos) 2D que define el contorno de la
+proyeccion del objeto, es decir la imagen que define la vista. Si bien se obtiene la linea poligonal del contorno de la vista,
+no se obtienen poligonos interiores que pueden definir huecos trasversales.
 
+La clase `BaseView` contiene ademas un metodo que permiten proyectar puntos 3D al plano de la vista y pasarlos a puntos 2D relativos
+al origen `O` de la vista, ademas de otro metodo que permite traducir coordenadas 2D relativas al origen de la vista a coordenadas 3D.
+Estos metodos son bastante utiles durante el proceso de reconstruccion, y son usados en clases que heredan de `BaseModel` con
+mucha frecuencia.
 
+```python
+class BaseView:
+
+  def __init__(self, path: Path):
+    # Inicializa Vx, Vy, Vz, O
+
+  def plane_to_real(self, point: tuple[float, float]):
+    # Convierte un punto 2D a 3D
+
+  def real_to_plane(self, point: tuple[float, float, float]):
+    # Convierte un punto 2D a 3D
+```
 
 
 
