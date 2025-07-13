@@ -52,5 +52,56 @@ Ambos algoritmos hacen uso de las clases abstractas `BaseModel` y `BaseView`, pe
 la clase `ModelRender` almacenada en `core/model_render.py`.
 
 
+## Crear nuevos algoritmos de reconstrucción
+
+Tal y como se ha explicado en el punto anterior, todos los algoritmos de este proyecto hacen uso de las clases `BaseModel` y `BaseView`. 
+La clase `BaseModel` contiene metodos abstractos que definen cada una de las etapas de reconstruccion y que han de ser sobreescritos
+por los algoritmos de reconstruccion, ademas de una funcion que dibuja el objeto reconstruido en un espacio 3D y otra que se encarga
+de mostrar informacion adicional tras la reconstruccion.
+
+```python
+class BaseModel:
+
+  def __init__(self, path: str, print_info: bool, viewClass: BaseView)
+    # Inicializacion de otras propiedades...
+    self.initial_reconstruction()
+    self.refine_model()
+    self.generate_surface()
+    if self.print_info: self.additional_info()
+
+  @abstractmethod
+  def initial_reconstruction(self):
+    warnings.warn('TODO')
+
+  @abstractmethod
+  def refine_model(self):
+    warnings.warn('TODO')
+
+  @abstractmethod
+  def generate_surface(self):
+    warnings.warn('TODO')
+
+  @abstractmethod
+  def draw_model(self):
+    warnings.warn('TODO')
+
+  @abstractmethod
+  def additional_info(self):
+    warnings.warn('TODO')
+```
+
+Tal y como se puede ver, en el constructor de la clase `BaseModel` se llaman a las tres funciones de reconstruccion de manera
+secuencial y opcionalmente se muestra informacion adicional. Por otra parte, el metodo `draw_model` es usado en la clase 
+`ModelRender` para renderizar el modelo 3D usando la libreria [raylib](https://github.com/ryu577/pyray).
+
+
+
+
+
+
+
+
+
+
 
 
