@@ -48,7 +48,8 @@ El proyecto tiene como punto de entrada el archivo `main.py`. Este se encarga de
 reconstrucción. La reconstruccion de objetos se puede realizar mediante alguno de los algoritmos almacenados en `core/complex` o `core/simple`.
 
 Ambos algoritmos hacen uso de las clases abstractas `BaseModel` y `BaseView`, pertenecientes a los archivos `core/base_model.py` y 
-`core/base_view.py` para describir los objetos reconstruidos y sus vistas.
+`core/base_view.py` para describir los objetos reconstruidos y sus vistas. Una vez reconstruido el objeto, se renderiza mediante
+la clase `ModelRender` almacenada en `core/model_render.py`.
 
 
 
