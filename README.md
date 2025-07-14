@@ -128,6 +128,17 @@ Estos metodos son bastante útiles durante el proceso de reconstrucción ya que 
 mucha frecuencia. A diferencia de `BaseModel`, `BaseView` ya contiene casi toda la información posible, por lo 
 que es normal que nuevos algoritmos no hereden de `BaseView` sino que hagan uso directamente de la clase.
 
+### Incorporar el nuevo algoritmo
+
+Una vez el desarrollador ha creado un nuevo algoritmo de reconstrucción usando la clase `BaseModel`, se puede integrar dicho algoritmo
+mediante anadir una nueva opción al parámetro `--complexity` de `main.py`. En dicho archivo también se deben de pasar los argumentos
+necesarios al nuevo algoritmo de reconstrucción.
+
+> [!NOTE]
+> Quizás en próximas versiones del programa se incluya una funcionalidad que facilite la incorporación de nuevos algoritmos al
+> programa de forma automática sin que se añada código adicional al archivo `main.py`. Mientras tanto, se deberá de usar la
+> forma manual de anadir nuevos algoritmos.
+
 ## Crear nuevos objetos
 
 En el directorio ``examples/`` se encuentran algunos objetos junto con sus vistas correspondientes. Un modelo está compuesto por una
