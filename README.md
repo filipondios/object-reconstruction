@@ -128,6 +128,37 @@ Estos metodos son bastante útiles durante el proceso de reconstrucción ya que 
 mucha frecuencia. A diferencia de `BaseModel`, `BaseView` ya contiene casi toda la información posible, por lo 
 que es normal que nuevos algoritmos no hereden de `BaseView` sino que hagan uso directamente de la clase.
 
+## Crear nuevos objetos
+
+En el directorio ``examples/`` se encuentran algunos objetos junto con sus vistas correspondientes. Un modelo está compuesto por una
+serie de subdirectorios, cada uno describiendo una vista. Cada vista ha de estar compuesta por un archivo `camera.json` que defina
+la orientacion de la camara y su posición, ademas de la proyeccion ortogonal del objeto para dicha configuracion de la camara en 
+el archivo `plane.bmp`. 
+
+El contendio del archivo `camera.json` no es más que cada uno de los atributos para un objeto de la clase `BaseView`. Por ejemplo,
+un archivo `camera.json` puede tener el siguiente contenido:
+
+```json
+{
+  "name": "elevation",
+  "origin": [40,0,0],
+  "vx": [0,-1,0],
+  "vy": [-1,0,0],
+  "vz": [0,0,1]
+}
+```
+
+> [!NOTE]
+> Se ha de mencionar que los vectores `Vx`, `Vy` y `Vz` deben de estar normalizados, ya que esto evitaria potenciales errores en los
+> metodos de reconstrucción. Esto se produce debido a que al cargarlos en un objeto `BaseView` estos valores no se normalizan.
+
+Por otro lado, las proyecciones de un objeto almacenadas en las imágenes `plane.bmp` deben tener el siguiente formato para poder
+extraer de forma correcta la línea poligonal que describe el contorno de la proyección: La proyección debe tener un fondo blanco
+`RGB(255,255,255)`, los bordes de la figura proyectada serán negros `RGB(0,0,0)` y la superficie de la figura de cualquier otro
+color RGB.
+
+
+
 
 
 
