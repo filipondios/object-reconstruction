@@ -136,7 +136,7 @@ la orientacion de la camara y su posición, ademas de la proyeccion ortogonal de
 el archivo `plane.bmp`. 
 
 El contendio del archivo `camera.json` no es más que cada uno de los atributos para un objeto de la clase `BaseView`. Por ejemplo,
-un archivo `camera.json` puede tener el siguiente contenido:
+un archivo para describir la posición y orientación de la cámara puede tener el siguiente contenido:
 
 ```json
 {
@@ -154,8 +154,7 @@ un archivo `camera.json` puede tener el siguiente contenido:
 
 Por otro lado, las proyecciones de un objeto almacenadas en las imágenes `plane.bmp` deben tener el siguiente formato para poder
 extraer de forma correcta la línea poligonal que describe el contorno de la proyección: La proyección debe tener un fondo blanco
-`RGB(255,255,255)`, los bordes de la figura proyectada serán negros `RGB(0,0,0)` y la superficie de la figura de cualquier otro
-color RGB.
+`255`, los bordes de la figura proyectada serán negros `0` y la superficie de la figura de cualquier otro color RGB.
 
 
 
