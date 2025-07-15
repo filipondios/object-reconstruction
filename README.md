@@ -50,6 +50,13 @@ Ambos algoritmos hacen uso de las clases abstractas `BaseModel` y `BaseView`, pe
 `core/base_view.py` para describir los objetos reconstruidos y sus vistas. Una vez reconstruido el objeto, se renderiza mediante
 la clase `ModelRender` almacenada en `core/model_render.py`.
 
+## Posibles mejoras en los algoritmos actuales
+
+Está claro que la cantidad de objetos que pueden procesar los algoritmos actuales es limitada debido a las numerosas restricciones impuestas a este proyecto.
+Por ello, algunas posibles mejoras incluirían permitir objetos con huecos transversales y objetos con rampas. Si bien en la introducción se mencionó que no 
+se permiten objetos con superficies circulares y esta posibilidad no se contempla entre las mejoras, es porque diferenciar entre rampas y superficies circulares 
+resulta una tarea casi imposible.
+
 
 ## Crear nuevos algoritmos de reconstrucción
 ### La clase BaseModel
