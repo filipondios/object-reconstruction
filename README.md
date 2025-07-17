@@ -1,131 +1,153 @@
+# Object Reconstruction
 
-# Reconstrucción de Objetos
+This repository contains the source code for my Bachelor's Thesis project.
 
-Este repositorio contiene el código fuente de mi Trabajo de Fin de Grado (TFG).
+## Table of Contents
 
-## Índice de Contenidos
-
-1. [Introducción](#introducción)  
-2. [Algoritmos Comparados](#algoritmos-comparados)  
-   2.1 [Algoritmo del Estado del Arte](#algoritmo-del-estado-del-arte)  
-   2.2 [Algoritmo Propuesto (Vóxeles)](#algoritmo-propuesto-vóxeles)  
-3. [Ejecución del Programa](#ejecución-del-programa)  
+1. [Introduction](#introduction)  
+2. [Compared Algorithms](#compared-algorithms)  
+   2.1 [State-of-the-Art Algorithm](#state-of-the-art-algorithm)  
+   2.2 [Proposed Algorithm (Voxels)](#proposed-algorithm-voxels)  
+3. [Program Execution](#program-execution)  
 4. [Benchmarks](#benchmarks)  
-5. [Estructura del Proyecto](#estructura-del-proyecto)  
-6. [Posibles Mejoras en los Algoritmos Actuales](#posibles-mejoras-en-los-algoritmos-actuales)  
-7. [Crear Nuevos Algoritmos de Reconstrucción](#crear-nuevos-algoritmos-de-reconstrucción)  
-   7.1 [La clase BaseModel](#la-clase-basemodel)  
-   7.2 [La clase BaseView](#la-clase-baseview)  
-   7.3 [Incorporar el Nuevo Algoritmo](#incorporar-el-nuevo-algoritmo)  
-8. [Crear Nuevos Objetos](#crear-nuevos-objetos)  
+5. [Project Structure](#project-structure)  
+6. [Possible Improvements to Current Algorithms](#possible-improvements-to-current-algorithms)  
+7. [Creating New Reconstruction Algorithms](#creating-new-reconstruction-algorithms)  
+   7.1 [The BaseModel Class](#the-basemodel-class)  
+   7.2 [The BaseView Class](#the-baseview-class)  
+   7.3 [Integrating the New Algorithm](#integrating-the-new-algorithm)  
+8. [Creating New Objects](#creating-new-objects)  
 
-## Introducción
+## Introduction
 
-El objetivo de este proyecto es comparar dos enfoques diferentes para la reconstrucción de objetos tridimensionales a partir de sus vistas ortogonales (frontal, lateral, superior y sus opuestos), bajo un conjunto de restricciones concretas. Los objetos no contienen rampas, superficies circulares o huecos interiores.
+The goal of this project is to compare two different approaches to the 
+reconstruction of 3D objects from their orthogonal views (front, side, top, and
+their opposites), under a specific set of constraints. The objects do not 
+contain ramps, circular surfaces, or internal cavities.
 
-## Algoritmos Comparados
+## Compared Algorithms
 
-### Algoritmo del Estado del Arte
+### State-of-the-Art Algorithm
 
-Se ha seleccionado como algoritmo representativo del estado del arte a la tesis doctoral de Gálvez Lamolda:
-> Gálvez Lamolda, J. M. (1990). *Reconstrucción de objetos a partir de vistas bidimensionales y su reconocimiento mediante momentos 3D: Desarrollos técnicos y aplicaciones*. AccedaCRIS ULPGC.  
-> [Acceso al documento](https://accedacris.ulpgc.es/handle/10553/21247)
+As a representative of the state-of-the-art, the following PhD thesis by Gálvez 
+Lamolda has been selected:
+> Gálvez Lamolda, J. M. (1990). *Reconstrucción de objetos a partir de vistas 
+> bidimensionales y su reconocimiento mediante momentos 3D: Desarrollos técnicos
+> y aplicaciones*. AccedaCRIS ULPGC. 
+> [Access the document](https://accedacris.ulpgc.es/handle/10553/21247)
 
-En dicho trabajo se presenta un algoritmo que teóricamente puede trabajar con todo tipo de objetos (incluyendo aquellos que no cumplen las restricciones descritas en la sección anterior).
+This work presents an algorithm that can theoretically work with all types of
+objects, including those that do not comply with the constraints described in 
+the previous section.
 
-### Algoritmo Propuesto (Vóxeles)
+### Proposed Algorithm (Voxels)
 
-Por otro lado, el algoritmo que se ha implementado para ser comparado con el seleccionado del estado del arte está basado en [vóxeles](https://en.wikipedia.org/wiki/Voxel), los cuales ofrecen una solución perfecta para este problema ya que los objetos a tratar son perfectamente 'divisibles' visualmente en cubos.
+On the other hand, the algorithm implemented for comparison with the state-of-
+the-art solution is based on  [voxels](https://en.wikipedia.org/wiki/Voxel),
+which offer a perfect solution for this problem since the objects are visually
+'divisible' into cubes.
 
-## Ejecución del programa
+## Program Execution
 
-El programa tiene como punto de entrada el archivo `main.py` que se encuentra en la raiz del proyecto. Asegurate de instalar antes de nada 
-los [requerimientos](requirements.txt).
+The program's entry point is the `main.py` file located at the root of the
+project. Make sure to first install the [requirements](requirements.txt).
 
 ```bash
 python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 ```
 
-| Parámetro            | Obligatorio        | Valor por defecto | Descripción |
-|:--------------------:|:------------------:|:-----------------:|:------------|
-| `-p`                 | si                 | ninguno           | Ruta al modelo a reconstruir. |
-| `-c`                 | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
-| `-s`                 | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendrá el modelo reconstruido. | 
-| `-r`                 | no                 | 8                 | Resolución del espacio de vóxeles para el algoritmo `simple`. Cuanto mayor sea la resolución del espacio del vóxeles, mayor precisión tendra el modelo reconstruido. |
-| `-i`                 | no                 | ninguno           | Muestra más información sobre el modelo reconstruido al final del proceso de reconstrucción. |
+| Parameter | Required | Default Value | Description |
+|:---------:|:--------:|:-------------:|:------------|
+| `-p`      | yes      | none          | Path to the model to be reconstructed. |
+| `-c`      | yes      | none          | Complexity of the algorithm used for reconstruction. Two default options are available: `simple` or `complex`. |
+| `-s`      | no       | 1.0           | Step size between raster segments for the `complex` algorithm. The smaller the step, the higher the reconstruction accuracy. |
+| `-r`      | no       | 8             | Voxel space resolution for the `simple` algorithm. Higher resolution leads to more accurate reconstruction. |
+| `-i`      | no       | none          | Displays additional information about the reconstructed model after the process ends. |
 
 <!-- Demo video, just trying some models from the examples -->
 [![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
 
 ## Benchmarks
 
-A continuación, se presentan los resultados de los benchmarks correspondientes a los dos algoritmos implementados en el proyecto. En primer lugar, se
-muestran los resultados obtenidos con el algoritmo de José M. Gálvez, y a continuación se exponen los del algoritmo propio desarrollado en este 
-trabajo, basado en vóxeles.
+Below are the benchmark results for the two algorithms implemented in this 
+project. First, the results obtained with José M. Gálvez's algorithm are shown,
+followed by those of the voxel-based algorithm developed in this work.
 
-Las tablas incluyen dos columnas clave:
-- R.I (Reconstrucción Inicial): tiempo de ejecución (en segundos) correspondiente a la etapa de reconstrucción inicial del modelo.
-- R.M (Refinamiento del Modelo): tiempo de ejecución (en segundos) de la etapa de refinamiento posterior.
+The tables include two key columns:
+- I.R (Initial Reconstruction): execution time (in seconds) for the model's 
+initial reconstruction stage.
+- M.R (Model Refinement): execution time (in seconds) for the subsequent 
+refinement stage.
 
-Los valores de cada tabla representan la media de cinco ejecuciones por cada nivel de precisión sobre el modelo de prueba [someone](examples/someone).
-Las pruebas se han realizado en un sistema con CPU AMD Ryzen 7 5800X, 16 GB de RAM DDR4, y sistema operativo Windows.
+Each table shows the average values of five runs for each precision level using
+the test model [someone](examples/someone). Tests were conducted on a system 
+with an AMD Ryzen 7 5800X CPU, 16 GB DDR4 RAM, and Windows OS.
 
-Los resultados para la implementación del agoritmo de José M. Galvez:
+Results for José M. Gálvez's algorithm implementation:
 
-| Separación (uds) | R.I (seg) | R.M (seg) | Planos (uds) | Polígonos (uds) | Vértices (uds) |
-|------------------|-----------|----------|---------------|------------------|----------------|
-| 8                | 0,517     | 3,3578   | 17            | 19               | 115            |
-| 7                | 0,4541    | 3,0368   | 18            | 17               | 105            |
-| 6                | 0,4834    | 3,644    | 20            | 20               | 128            |
-| 5                | 1,0824    | 7,1731   | 30            | 45               | 253            |
-| 4                | 1,0199    | 7,086    | 32            | 41               | 245            |
-| 3                | 1,1253    | 8,142    | 39            | 46               | 286            |
-| 2                | 2,0125    | 12,3338  | 60            | 69               | 425            |
-| 1                | 5,5638    | 24,0606  | 118           | 133              | 821            |
-| 0,5              | 16,313    | 44,7234  | 228           | 243              | 1531           |
+| Step (units) | I.R (s) | M.R (s) | Planes (units) | Polygons (units) | Vertices (units) |
+|--------------|---------|---------|----------------|-------------------|------------------|
+| 8            | 0.517   | 3.3578  | 17             | 19                | 115              |
+| 7            | 0.4541  | 3.0368  | 18             | 17                | 105              |
+| 6            | 0.4834  | 3.644   | 20             | 20                | 128              |
+| 5            | 1.0824  | 7.1731  | 30             | 45                | 253              |
+| 4            | 1.0199  | 7.086   | 32             | 41                | 245              |
+| 3            | 1.1253  | 8.142   | 39             | 46                | 286              |
+| 2            | 2.0125  | 12.3338 | 60             | 69                | 425              |
+| 1            | 5.5638  | 24.0606 | 118            | 133               | 821              |
+| 0.5          | 16.313  | 44.7234 | 228            | 243               | 1531             |
 
-Los resultados para la implementación del algoritmo simplificado:
+Results for the simplified (voxel-based) algorithm implementation:
 
-| Resolución (uds) | R.I (seg)   | R.M (seg)  | Vóxeles totales | Vóxeles activos | Porcentaje activos |
-|------------------|-------------|-----------|------------------|------------------|---------------------|
-| 8                | 2,51E-05    | 0,1259    | 512              | 52               | 10,1563             |
-| 16               | 1,93E-05    | 0,481     | 4096             | 294              | 7,1777              |
-| 24               | 2,22E-05    | 1,0699    | 13824            | 1144             | 8,2755              |
-| 32               | 2,56E-05    | 1,9026    | 32768            | 2576             | 7,8613              |
-| 48               | 5,41E-05    | 4,2783    | 110592           | 8544             | 7,7257              |
-| 64               | 8,81E-05    | 7,6205    | 262144           | 22174            | 8,4587              |
-| 96               | 0,000283909 | 17,1236   | 884736           | 70784            | 8,0006              |
-| 128              | 0,000326872 | 30,3715   | 2097152          | 167112           | 7,9685              |
+| Resolution (units) | I.R (s)    | M.R (s)   | Total Voxels | Active Voxels | Active %  |
+|--------------------|------------|-----------|---------------|----------------|-----------|
+| 8                  | 2.51E-05   | 0.1259    | 512           | 52             | 10.1563   |
+| 16                 | 1.93E-05   | 0.481     | 4096          | 294            | 7.1777    |
+| 24                 | 2.22E-05   | 1.0699    | 13824         | 1144           | 8.2755    |
+| 32                 | 2.56E-05   | 1.9026    | 32768         | 2576           | 7.8613    |
+| 48                 | 5.41E-05   | 4.2783    | 110592        | 8544           | 7.7257    |
+| 64                 | 8.81E-05   | 7.6205    | 262144        | 22174          | 8.4587    |
+| 96                 | 0.00028391 | 17.1236   | 884736        | 70784          | 8.0006    |
+| 128                | 0.00032687 | 30.3715   | 2097152       | 167112         | 7.9685    |
 
+## Project Structure
 
-## Estructura del Proyecto
+The project's entry point is the `main.py` file. This file is responsible for 
+parsing the program's arguments and starting the reconstruction process. Object
+reconstruction can be performed using any of the algorithms stored in the 
+`core/complex` or `core/simple` directories.
 
-El proyecto tiene como punto de entrada el archivo `main.py`. Este se encarga de parsear los argumentos del programa e iniciar el proceso de 
-reconstrucción. La reconstruccion de objetos se puede realizar mediante alguno de los algoritmos almacenados en `core/complex` o `core/simple`.
+Both algorithms make use of the abstract classes `BaseModel` and `BaseView`, 
+located in the files `core/base_model.py` and `core/base_view.py`, to describe 
+the reconstructed objects and their views. Once the object is reconstructed, it
+is rendered using the `ModelRender` class located in `core/model_render.py`.
 
-Ambos algoritmos hacen uso de las clases abstractas `BaseModel` y `BaseView`, pertenecientes a los archivos `core/base_model.py` y 
-`core/base_view.py` para describir los objetos reconstruidos y sus vistas. Una vez reconstruido el objeto, se renderiza mediante
+## Possible Improvements to Current Algorithms
 
-la clase `ModelRender` almacenada en `core/model_render.py`.
+It is clear that the number of objects that the current algorithms can handle is
+limited due to the many constraints imposed on this project. Therefore, some 
+possible improvements could include supporting objects with transverse holes and
+ramps. Although the introduction stated that circular surfaces are not 
+allowed—and this possibility is not listed as a future improvement—this is
+because distinguishing between ramps and circular surfaces is an almost
+impossible task.
 
-## Posibles mejoras en los algoritmos actuales
+## Creating New Reconstruction Algorithms
 
-Está claro que la cantidad de objetos que pueden procesar los algoritmos actuales es limitada debido a las numerosas restricciones impuestas a este proyecto.
-Por ello, algunas posibles mejoras incluirían permitir objetos con huecos transversales y objetos con rampas. Si bien en la introducción se mencionó que no 
-se permiten objetos con superficies circulares y esta posibilidad no se contempla entre las mejoras, es porque diferenciar entre rampas y superficies circulares 
-resulta una tarea casi imposible.
+### The BaseModel Class
 
-
-## Crear nuevos algoritmos de reconstrucción
-### La clase BaseModel
-
-Tal y como se ha explicado en el punto anterior, todos los algoritmos de este proyecto hacen uso de las clases ``BaseModel`` y ``BaseView``. La clase ``BaseModel`` contiene métodos abstractos que definen cada una de las etapas de reconstrucción y que han de ser sobrescritos por los algoritmos de reconstrucción, además de una función que dibuja el objeto reconstruido en un espacio 3D y otra que se encarga de mostrar información adicional tras la reconstrucción.
+As explained in the previous section, all algorithms in this project use the 
+`BaseModel` and `BaseView` classes. The `BaseModel` class contains abstract 
+methods that define each stage of the reconstruction process, which must be
+overridden by specific reconstruction algorithms. It also includes a method to 
+draw the reconstructed object in 3D space and another to display additional 
+information after reconstruction.
 
 ```python
 class BaseModel:
 
   def __init__(self, path: str, print_info: bool, viewClass: BaseView)
-    # Inicializacion de otras propiedades...
+    # Initialization of other properties...
     self.initial_reconstruction()
     self.refine_model()
     self.generate_surface()
@@ -152,88 +174,96 @@ class BaseModel:
     warnings.warn('TODO')
 ```
 
-Tal y como se puede ver, en el constructor de la clase BaseModel se llaman a las tres funciones de reconstrucción de manera secuencial y, opcionalmente, se muestra información adicional. Por otra parte, el método draw_model es usado en la clase ModelRender para renderizar el modelo 3D usando la librería raylib.
+As shown, the constructor of the ``BaseModel`` class calls the three 
+reconstruction functions in sequence and optionally displays extra information. 
+The draw_model method is used in the ModelRender class to render the 3D model 
+using the raylib library.
 
-> [!TIP]
-> La clase BaseModel tiene atributos adicionales que proporcionan mas información. Estos son: una lista de vistas del objeto
-> y una tupla que guarda las dimensiones o bounding box que encierran al objeto real. Para mas información, échale un vistazo
-> a la clase [BaseModel](core/base_model.py)
+> [!TIP]  
+> The `BaseModel` class includes additional attributes that provide more 
+> information. These include: A list of views of the object and a tuple that
+> stores the dimensions or bounding box enclosing the actual object. For more
+> details, see the [BaseModel](core/base_model.py) class.
 
-### La clase BaseView
+### The BaseView Class
 
-La idea tras la clase `BaseView` es almacenar toda la información relativa a una vista del modelo. Esto incluye la posición y 
-orientación de la cámara a la hora de tomar una imagen del objeto a reconstruir, lo cual se traduce en tres vectores `Vx`, `Vy`,
-`Vz` y un punto `O`, tal y como se puede observar en la siguiente imagen:
+The idea behind the `BaseView` class is to store all the information related to 
+a view of the model. This includes the position and orientation of the camera 
+used to take an image of the object to be reconstructed, represented by three 
+vectors `Vx`, `Vy`, `Vz` and a point `O`, as illustrated below:
 
 <div align='center'>
-<img width="500" alt="imagen" src="https://github.com/user-attachments/assets/25266148-5bb3-4982-a6d1-bd185c790d0d" />
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/25266148-5bb3-4982-a6d1-bd185c790d0d" />
 </div>
 
-Además de la información acerca de la cámara, se guarda la linea poligonal (lista de puntos) 2D que define el contorno de la
-proyección del objeto, es decir, la imagen que define la vista. Si bien se obtiene la linea poligonal del contorno de la vista,
-no se obtienen polígonos interiores que pueden definir huecos trasversales.
+In addition to the camera information, it stores the 2D polyline (list of points)
+that defines the contour of the object's projection, i.e., the view's image.
+Although the polyline of the view's contour is obtained, internal polygons that 
+might define transverse holes are not.
 
-La clase `BaseView` contiene además un metodo que permite proyectar puntos 3D al plano de la vista y pasarlos a puntos 2D relativos
-al origen `O` de la vista, además de otro metodo que permite traducir coordenadas 2D relativas al origen de la vista a coordenadas 3D.
+The `BaseView` class also includes a method that allows projecting 3D points
+onto the view plane and converting them into 2D coordinates relative to the 
+origin `O` of the view, and another method that converts 2D coordinates back 
+into 3D coordinates.
 
 ```python
 class BaseView:
 
   def __init__(self, path: Path):
-    # Inicializa Vx, Vy, Vz, O
+    # Initializes Vx, Vy, Vz, O
 
   def plane_to_real(self, point: tuple[float, float]):
-    # Convierte un punto 2D a 3D
+    # Converts a 2D point to 3D
 
   def real_to_plane(self, point: tuple[float, float, float]):
-    # Convierte un punto 2D a 3D
+    # Converts a 3D point to 2D
 ```
 
-Estos metodos son bastante útiles durante el proceso de reconstrucción ya que son usados en clases que heredan de `BaseModel` con
-mucha frecuencia. A diferencia de `BaseModel`, `BaseView` ya contiene casi toda la información posible, por lo 
-que es normal que nuevos algoritmos no hereden de `BaseView` sino que hagan uso directamente de la clase.
+These methods are very useful during the reconstruction process, as they are 
+frequently used in classes that inherit from `BaseModel`. Unlike `BaseModel`,
+`BaseView` already contains almost all the necessary information, so it is 
+common for new algorithms to use `BaseView` directly rather than inherit from it.
 
-### Incorporar el nuevo algoritmo
+### Integrating the New Algorithm
 
-Una vez el desarrollador ha creado un nuevo algoritmo de reconstrucción usando la clase `BaseModel`, se puede integrar dicho algoritmo
-mediante anadir una nueva opción al parámetro `--complexity` de `main.py`. En dicho archivo también se deben de pasar los argumentos
-necesarios al nuevo algoritmo de reconstrucción.
+Once the developer has created a new reconstruction algorithm using the 
+`BaseModel` class, it can be integrated by adding a new option to the 
+`--complexity` parameter in `main.py`. The necessary arguments must also be 
+passed to the new reconstruction algorithm in this file.
 
-> [!NOTE]
-> Quizás en próximas versiones del programa se incluya una funcionalidad que facilite la incorporación de nuevos algoritmos al
-> programa de forma automática sin que se añada código adicional al archivo `main.py`. Mientras tanto, se deberá de usar la
-> forma manual de anadir nuevos algoritmos.
+> [!NOTE]  
+> In future versions of the program, functionality might be added to make it 
+> easier to integrate new algorithms automatically without modifying the 
+> `main.py` file. In the meantime, the manual approach must be used.
 
-## Crear nuevos objetos
+## Creating New Objects
 
-En el directorio ``examples/`` se encuentran algunos objetos junto con sus vistas correspondientes. Un modelo está compuesto por una
-serie de subdirectorios, cada uno describiendo una vista. Cada vista ha de estar compuesta por un archivo `camera.json` que defina
-la orientacion de la camara y su posición, ademas de la proyeccion ortogonal del objeto para dicha configuracion de la camara en 
-el archivo `plane.bmp`. 
+In the `examples/` directory, you can find several objects along with their 
+corresponding views. A model is composed of a series of subdirectories, each
+describing a view. Each view must contain a `camera.json` file that defines the
+orientation and position of the camera, as well as the orthogonal projection of
+the object for that camera configuration in the `plane.bmp` file.
 
-El contendio del archivo `camera.json` no es más que cada uno de los atributos para un objeto de la clase `BaseView`. Por ejemplo,
-un archivo para describir la posición y orientación de la cámara puede tener el siguiente contenido:
+The contents of the `camera.json` file simply represent the attributes of a 
+`BaseView` object. For example, a file describing the position and orientation
+of the camera might look like this:
 
 ```json
 {
   "name": "elevation",
-  "origin": [40,0,0],
-  "vx": [0,-1,0],
-  "vy": [-1,0,0],
-  "vz": [0,0,1]
+  "origin": [40, 0, 0],
+  "vx": [0, -1, 0],
+  "vy": [-1, 0, 0],
+  "vz": [0, 0, 1]
 }
-```
 
-> [!NOTE]
-> Se ha de mencionar que los vectores `Vx`, `Vy` y `Vz` deben de estar normalizados, ya que esto evitaria potenciales errores en los
-> metodos de reconstrucción. Esto se produce debido a que al cargarlos en un objeto `BaseView` estos valores no se normalizan.
+> [!NOTE]  
+> The `Vx`, `Vy`, and `Vz` vectors must be normalized to avoid potential errors 
+> in the reconstruction methods. These vectors are not normalized automatically
+> when loaded into a `BaseView` object.
 
-Por otro lado, las proyecciones de un objeto almacenadas en las imágenes `plane.bmp` deben tener el siguiente formato para poder
-extraer de forma correcta la línea poligonal que describe el contorno de la proyección: La proyección debe tener un fondo blanco
-`255`, los bordes de la figura proyectada serán negros `0` y la superficie de la figura de cualquier otro color RGB.
-
-
-
-
-
-
+On the other hand, the object projections stored in the `plane.bmp` images must 
+follow the expected format to correctly extract the polyline that defines the 
+projection contour: The background should be white (`255`), the figure's edges 
+should be black (`0`), and the inner area of the figure can be filled with any 
+other RGB color.
