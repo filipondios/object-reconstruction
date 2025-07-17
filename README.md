@@ -1,5 +1,9 @@
 # Object Reconstruction
 
+> [!NOTE]  
+> This repository also contains a README in Spanish.  
+> If you prefer to read the documentation in Spanish, please refer to this [README](README_ES.md).
+
 This repository contains the source code for my Bachelor's Thesis project.
 
 ## Table of Contents
@@ -56,13 +60,13 @@ project. Make sure to first install the [requirements](requirements.txt).
 python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 ```
 
-| Parameter | Required | Default Value | Description |
-|:---------:|:--------:|:-------------:|:------------|
-| `-p`      | yes      | none          | Path to the model to be reconstructed. |
-| `-c`      | yes      | none          | Complexity of the algorithm used for reconstruction. Two default options are available: `simple` or `complex`. |
+| Parameter | Required | Default Value | Description                                                                                                                  |
+|:---------:|:--------:|:-------------:|:-----------------------------------------------------------------------------------------------------------------------------|
+| `-p`      | yes      | none          | Path to the model to be reconstructed.                                                                                       |
+| `-c`      | yes      | none          | Complexity of the algorithm used for reconstruction. Two default options are available: `simple` or `complex`.               |
 | `-s`      | no       | 1.0           | Step size between raster segments for the `complex` algorithm. The smaller the step, the higher the reconstruction accuracy. |
-| `-r`      | no       | 8             | Voxel space resolution for the `simple` algorithm. Higher resolution leads to more accurate reconstruction. |
-| `-i`      | no       | none          | Displays additional information about the reconstructed model after the process ends. |
+| `-r`      | no       | 8             | Voxel space resolution for the `simple` algorithm. Higher resolution leads to more accurate reconstruction.                  |
+| `-i`      | no       | none          | Displays additional information about the reconstructed model after the process ends.                                        |
 
 <!-- Demo video, just trying some models from the examples -->
 [![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
@@ -85,7 +89,7 @@ with an AMD Ryzen 7 5800X CPU, 16 GB DDR4 RAM, and Windows OS.
 
 Results for José M. Gálvez's algorithm implementation:
 
-| Step (units) | I.R (s) | M.R (s) | Planes (units) | Polygons (units) | Vertices (units) |
+| Step (units) | I.R (s) | M.R (s) | Planes (units) | Polygons (units)  | Vertices (units) |
 |--------------|---------|---------|----------------|-------------------|------------------|
 | 8            | 0.517   | 3.3578  | 17             | 19                | 115              |
 | 7            | 0.4541  | 3.0368  | 18             | 17                | 105              |
@@ -99,7 +103,7 @@ Results for José M. Gálvez's algorithm implementation:
 
 Results for the simplified (voxel-based) algorithm implementation:
 
-| Resolution (units) | I.R (s)    | M.R (s)   | Total Voxels | Active Voxels | Active %  |
+| Resolution (units) | I.R (s)    | M.R (s)   | Total Voxels  | Active Voxels  | Active %  |
 |--------------------|------------|-----------|---------------|----------------|-----------|
 | 8                  | 2.51E-05   | 0.1259    | 512           | 52             | 10.1563   |
 | 16                 | 1.93E-05   | 0.481     | 4096          | 294            | 7.1777    |
@@ -256,6 +260,7 @@ of the camera might look like this:
   "vy": [-1, 0, 0],
   "vz": [0, 0, 1]
 }
+```
 
 > [!NOTE]  
 > The `Vx`, `Vy`, and `Vz` vectors must be normalized to avoid potential errors 
