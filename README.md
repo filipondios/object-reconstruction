@@ -21,6 +21,47 @@ En dicho trabajo se presenta un algoritmo que teóricamente puede trabajar con t
 
 Por otro lado, el algoritmo que se ha implementado para ser comparado con el seleccionado del estado del arte está basado en [vóxeles](https://en.wikipedia.org/wiki/Voxel), los cuales ofrecen una solución perfecta para este problema ya que los objetos a tratar son perfectamente 'divisibles' visualmente en cubos.
 
+## Benchmarks
+
+A continuación, se presentan los resultados de los benchmarks correspondientes a los dos algoritmos implementados en el proyecto. En primer lugar, se
+muestran los resultados obtenidos con el algoritmo de José M. Gálvez, y a continuación se exponen los del algoritmo propio desarrollado en este 
+trabajo, basado en vóxeles.
+
+Las tablas incluyen dos columnas clave:
+- R.I (Reconstrucción Inicial): tiempo de ejecución (en segundos) correspondiente a la etapa de reconstrucción inicial del modelo.
+- R.M (Refinamiento del Modelo): tiempo de ejecución (en segundos) de la etapa de refinamiento posterior.
+
+Los valores de cada tabla representan la media de cinco ejecuciones por cada nivel de precisión sobre el modelo de prueba [someone](examples/someone).
+Las pruebas se han realizado en un sistema con CPU AMD Ryzen 7 5800X, 16 GB de RAM DDR4, y sistema operativo Windows.
+
+Los resultados para la implementación del agoritmo de José M. Galvez:
+
+| Separación (uds) | R.I (seg) | R.M (seg) | Planos (uds) | Polígonos (uds) | Vértices (uds) |
+|------------------|-----------|----------|---------------|------------------|----------------|
+| 8                | 0,517     | 3,3578   | 17            | 19               | 115            |
+| 7                | 0,4541    | 3,0368   | 18            | 17               | 105            |
+| 6                | 0,4834    | 3,644    | 20            | 20               | 128            |
+| 5                | 1,0824    | 7,1731   | 30            | 45               | 253            |
+| 4                | 1,0199    | 7,086    | 32            | 41               | 245            |
+| 3                | 1,1253    | 8,142    | 39            | 46               | 286            |
+| 2                | 2,0125    | 12,3338  | 60            | 69               | 425            |
+| 1                | 5,5638    | 24,0606  | 118           | 133              | 821            |
+| 0,5              | 16,313    | 44,7234  | 228           | 243              | 1531           |
+
+Los resultados para la implementación del algoritmo simplificado:
+
+| Resolución (uds) | R.I (seg)   | R.M (seg)  | Vóxeles totales | Vóxeles activos | Porcentaje activos |
+|------------------|-------------|-----------|------------------|------------------|---------------------|
+| 8                | 2,51E-05    | 0,1259    | 512              | 52               | 10,1563             |
+| 16               | 1,93E-05    | 0,481     | 4096             | 294              | 7,1777              |
+| 24               | 2,22E-05    | 1,0699    | 13824            | 1144             | 8,2755              |
+| 32               | 2,56E-05    | 1,9026    | 32768            | 2576             | 7,8613              |
+| 48               | 5,41E-05    | 4,2783    | 110592           | 8544             | 7,7257              |
+| 64               | 8,81E-05    | 7,6205    | 262144           | 22174            | 8,4587              |
+| 96               | 0,000283909 | 17,1236   | 884736           | 70784            | 8,0006              |
+| 128              | 0,000326872 | 30,3715   | 2097152          | 167112           | 7,9685              |
+
+
 ## Ejecución del programa
 
 El programa tiene como punto de entrada el archivo `main.py` que se encuentra en la raiz del proyecto. Asegurate de instalar antes de nada 
