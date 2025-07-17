@@ -3,7 +3,23 @@
 
 Este repositorio contiene el código fuente de mi Trabajo de Fin de Grado (TFG).
 
-## Descripción
+## Índice de Contenidos
+
+1. [Introducción](#introducción)  
+2. [Algoritmos Comparados](#algoritmos-comparados)  
+   2.1 [Algoritmo del Estado del Arte](#algoritmo-del-estado-del-arte)  
+   2.2 [Algoritmo Propuesto (Vóxeles)](#algoritmo-propuesto-vóxeles)  
+3. [Ejecución del Programa](#ejecución-del-programa)  
+4. [Benchmarks](#benchmarks)  
+5. [Estructura del Proyecto](#estructura-del-proyecto)  
+6. [Posibles Mejoras en los Algoritmos Actuales](#posibles-mejoras-en-los-algoritmos-actuales)  
+7. [Crear Nuevos Algoritmos de Reconstrucción](#crear-nuevos-algoritmos-de-reconstrucción)  
+   7.1 [La clase BaseModel](#la-clase-basemodel)  
+   7.2 [La clase BaseView](#la-clase-baseview)  
+   7.3 [Incorporar el Nuevo Algoritmo](#incorporar-el-nuevo-algoritmo)  
+8. [Crear Nuevos Objetos](#crear-nuevos-objetos)  
+
+## Introducción
 
 El objetivo de este proyecto es comparar dos enfoques diferentes para la reconstrucción de objetos tridimensionales a partir de sus vistas ortogonales (frontal, lateral, superior y sus opuestos), bajo un conjunto de restricciones concretas. Los objetos no contienen rampas, superficies circulares o huecos interiores.
 
