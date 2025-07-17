@@ -21,6 +21,26 @@ En dicho trabajo se presenta un algoritmo que teóricamente puede trabajar con t
 
 Por otro lado, el algoritmo que se ha implementado para ser comparado con el seleccionado del estado del arte está basado en [vóxeles](https://en.wikipedia.org/wiki/Voxel), los cuales ofrecen una solución perfecta para este problema ya que los objetos a tratar son perfectamente 'divisibles' visualmente en cubos.
 
+## Ejecución del programa
+
+El programa tiene como punto de entrada el archivo `main.py` que se encuentra en la raiz del proyecto. Asegurate de instalar antes de nada 
+los [requerimientos](requirements.txt).
+
+```bash
+python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
+```
+
+| Parámetro            | Obligatorio        | Valor por defecto | Descripción |
+|:--------------------:|:------------------:|:-----------------:|:------------|
+| `-p`                 | si                 | ninguno           | Ruta al modelo a reconstruir. |
+| `-c`                 | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
+| `-s`                 | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendrá el modelo reconstruido. | 
+| `-r`                 | no                 | 8                 | Resolución del espacio de vóxeles para el algoritmo `simple`. Cuanto mayor sea la resolución del espacio del vóxeles, mayor precisión tendra el modelo reconstruido. |
+| `-i`                 | no                 | ninguno           | Muestra más información sobre el modelo reconstruido al final del proceso de reconstrucción. |
+
+<!-- Demo video, just trying some models from the examples -->
+[![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
+
 ## Benchmarks
 
 A continuación, se presentan los resultados de los benchmarks correspondientes a los dos algoritmos implementados en el proyecto. En primer lugar, se
@@ -62,26 +82,6 @@ Los resultados para la implementación del algoritmo simplificado:
 | 128              | 0,000326872 | 30,3715   | 2097152          | 167112           | 7,9685              |
 
 
-## Ejecución del programa
-
-El programa tiene como punto de entrada el archivo `main.py` que se encuentra en la raiz del proyecto. Asegurate de instalar antes de nada 
-los [requerimientos](requirements.txt).
-
-```bash
-python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
-```
-
-| Parámetro            | Obligatorio        | Valor por defecto | Descripción |
-|:--------------------:|:------------------:|:-----------------:|:------------|
-| `-p`                 | si                 | ninguno           | Ruta al modelo a reconstruir. |
-| `-c`                 | si                 | ninguno           | Complejidad del algoritmo a usar para realizar la reconstrucción. Existen dos posiblilidades por defecto: `simple` o `complex`.  |
-| `-s`                 | no                 | 1.0               | Separación entre segmentos de rasterización para el algoritmo `complex`. Cuanto menor separación, mayor precisión tendrá el modelo reconstruido. | 
-| `-r`                 | no                 | 8                 | Resolución del espacio de vóxeles para el algoritmo `simple`. Cuanto mayor sea la resolución del espacio del vóxeles, mayor precisión tendra el modelo reconstruido. |
-| `-i`                 | no                 | ninguno           | Muestra más información sobre el modelo reconstruido al final del proceso de reconstrucción. |
-
-<!-- Demo video, just trying some models from the examples -->
-[![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
-
 ## Estructura del Proyecto
 
 El proyecto tiene como punto de entrada el archivo `main.py`. Este se encarga de parsear los argumentos del programa e iniciar el proceso de 
@@ -89,6 +89,7 @@ reconstrucción. La reconstruccion de objetos se puede realizar mediante alguno 
 
 Ambos algoritmos hacen uso de las clases abstractas `BaseModel` y `BaseView`, pertenecientes a los archivos `core/base_model.py` y 
 `core/base_view.py` para describir los objetos reconstruidos y sus vistas. Una vez reconstruido el objeto, se renderiza mediante
+
 la clase `ModelRender` almacenada en `core/model_render.py`.
 
 ## Posibles mejoras en los algoritmos actuales
