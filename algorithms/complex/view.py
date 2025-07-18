@@ -3,7 +3,6 @@ from sympy import Line3D, Matrix
 from shapely.geometry import LineString, MultiLineString
 from core.base_view import BaseView
 import numpy as np
-import cv2
 
 
 class View(BaseView):

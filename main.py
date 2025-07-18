@@ -5,8 +5,8 @@ if __name__ == '__main__':
     print(file.read())
 
     from argparse import ArgumentParser
-    from core.complex.model import Model as ComplexModel
-    from core.simple.model import Model as SimpleModel
+    from algorithms.complex.model import Model as ComplexModel
+    from algorithms.simple.model import Model as SimpleModel
     from core.model_render import ModelRender
 
     # Argument parsing (program options)

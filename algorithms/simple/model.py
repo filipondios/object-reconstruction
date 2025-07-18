@@ -1,7 +1,7 @@
 import numpy as np
 import pyray as rl
 from core.base_model import BaseModel
-from core.simple.view import View, DirectionPlane
+from algorithms.simple.view import View, DirectionPlane
 
 
 class Model(BaseModel):

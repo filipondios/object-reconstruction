@@ -2,7 +2,7 @@ from sympy import Plane, Matrix, Line3D, Point3D
 from shapely import Polygon
 import pyray as rl
 from core.base_model import BaseModel
-from core.complex.view import View
+from algorithms.complex.view import View
 from enum import Enum
 
 
