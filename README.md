@@ -84,7 +84,7 @@ initial reconstruction stage.
 refinement stage.
 
 Each table shows the average values of five runs for each precision level using
-the test model [someone](examples/someone). Tests were conducted on a system 
+the test model [someone](models/someone). Tests were conducted on a system 
 with an AMD Ryzen 7 5800X CPU, 16 GB DDR4 RAM, and Windows OS.
 
 Results for José M. Gálvez's algorithm implementation:
