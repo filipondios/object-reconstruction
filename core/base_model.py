@@ -56,7 +56,7 @@ class BaseModel:
        
 
     @abstractmethod
-    def initial_reconstruction(self, args=None) -> None:
+    def initial_reconstruction(self) -> None:
         """ Must generate a first version of the model """
         warnings.warn('This method has to be implemented')
 
