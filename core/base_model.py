@@ -19,13 +19,14 @@ class BaseModel:
         self.path = path
 
         # Display all the model data in a table format
-        format = lambda p: f'({p.x}, {p.y}, {p.z})'
+        format = lambda p: f'({p[0]}, {p[1]}, {p[2]})'
         data = [[view.name, 
             format(view.origin),
             format(view.vx),
             format(view.vy),
             format(view.vz)]
             for view in self.views]
+
         headers = ['Name', 'Origin', 'Vx', 'Vy', 'Vz']
         table = tabulate(data, headers=headers, tablefmt="github")
         name = 'A model has been found at: %s' % self.path
