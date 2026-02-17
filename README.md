@@ -2,7 +2,7 @@
 
 > [!NOTE]  
 > This repository also contains a README in Spanish.  
-> If you prefer to read the documentation in Spanish, please refer to this [README](README_ES.md).
+> If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md).
 
 This repository contains the source code for my Bachelor's Thesis project.
 
