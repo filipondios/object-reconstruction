@@ -17,7 +17,7 @@ class Model(BaseModel):
         super().__init__(path, print_info, View)
 
 
-    def initial_reconstruction(self, _=None) -> None:
+    def initial_reconstruction(self) -> None:
         """ Initializes the voxel space """
         self.voxel_space = np.ones((self.resolution,)*3, dtype=bool)
 

@@ -7,6 +7,8 @@ import numpy as np
 
 class View(BaseView):
 
+    polygon3d: list
+
     def __init__(self, path: Path):
         super().__init__(path)
 

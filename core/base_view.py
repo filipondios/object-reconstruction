@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from sympy import Matrix, Point3D
+from sympy import Point3D
 from shapely.geometry import Polygon
 import numpy as np
 import cv2
@@ -43,6 +43,13 @@ class BaseView:
         min_vals, max_vals = np.min(vertices, axis=0), np.max(vertices, axis=0)
         center = (min_vals + max_vals) / 2
         self.polygon = Polygon(vertices - center)
+
+        # calculate view inverse transform matrix
+        transform_matrix = np.array([
+            [self.vx.x, self.vz.x],
+            [self.vx.y, self.vz.y],
+            [self.vx.z, self.vz.z]], dtype=float)
+        self.transform_inv = np.linalg.pinv(transform_matrix)
 
     
     def get_contour_polygon(self, img: np.ndarray) -> list[tuple[int, int]]:
@@ -93,16 +100,11 @@ class BaseView:
 
     def real_to_plane(self, point: tuple[float, float, float]) -> tuple[float, float]:
         """ Converts a 3D point to a 2D point """
-        delta = Matrix([
+        delta = np.array([
             point[0] - self.origin.x,
             point[1] - self.origin.y,
             point[2] - self.origin.z
-        ])       
-        coeffs = Matrix([
-            [self.vx.x, self.vz.x],
-            [self.vx.y, self.vz.y],
-            [self.vx.z, self.vz.z]
-        ])
-
-        solution = coeffs.solve_least_squares(delta)
+        ], dtype=float)
+        
+        solution = self.transform_inv @ delta
         return (solution[0], solution[1])

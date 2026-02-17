@@ -102,33 +102,80 @@ class Model(BaseModel):
 
 
     def refine_model(self) -> None:
-        _, (plane, _) = next(iter(self.planes.items()))
-        planes_normal = Matrix(plane.normal_vector)
+        """ Reconstructs the model directly """
+        _, (first_plane, _) = next(iter(self.planes.items()))
+        normal = Matrix(first_plane.normal_vector)
         
+        # Get aligned axis
+        if abs(normal[0]) > 0.99: 
+            plane_axis = Axis.X
+        elif abs(normal[1]) > 0.99:
+            plane_axis = Axis.Y
+        else: plane_axis = Axis.Z
+
         for view in self.views:
             # Ensure the actual view's line of vission is aligned with
             # all the planes' normal, in order to ensure a full non-
             # empty polygon intersections.
-            
-            if Matrix(view.vy).cross(planes_normal).norm() > 1e-6:
+            if Matrix(view.vy).cross(normal).norm() > 1e-6:
                 continue
-   
-            print(f'[+] Using {view.name} to refine.')
+            
+            # convert view's 2D polygon to 3D
+            print(f'[+] Using {view.name} to refine.')            
+            view_polygon_3d = [view.plane_to_real(coord) 
+                            for coord in view.polygon.exterior.coords[:-1]]
+            
             for (key, (plane, polygons)) in self.planes.items():
+                # project the view's polygon into the plane
                 refined_polygons = []
-
+                view_poly_projected = [plane.projection(point) 
+                    for point in view_polygon_3d]
+                
                 for polygon3d in polygons:
-                    # Project and refine the current polygon via intersection
-                    projection = Polygon([view.real_to_plane(point) for point in polygon3d])
-                    intersection = view.polygon.intersection(projection)
+                    # 3D coplanar intersection
+                    intersection_3d = self.intersect_3dpolygons(
+                        polygon3d, view_poly_projected, plane_axis)
 
-                    if intersection.is_empty or not isinstance(intersection, Polygon):
-                        continue # Discard polygon from list
-
-                    projection = [plane.projection(view.plane_to_real(point))
-                        for point in intersection.exterior.coords]
-                    refined_polygons.append(projection)
+                    if intersection_3d: # if not empty, add
+                        refined_polygons.append(intersection_3d)
                 self.planes[key] = (plane, refined_polygons)
+
+
+    def intersect_3dpolygons(self, poly1: list[Point3D], poly2: list[Point3D], axis: Axis) -> list[Point3D]:
+        """ Intersect two coplanar 3d polygons, resulting in another polygon or empty set.
+            Intersecting two coplanar 3d polygons that are contained in a plane parallel to
+            one of the coordinate system plates (XY, XZ, YZ), can be done like a 2d polygon
+            intersection ignoring the constant axis """
+        
+        if axis == Axis.X:
+            poly1_2d = [(p.y, p.z) for p in poly1]
+            poly2_2d = [(p.y, p.z) for p in poly2]
+            fixed = poly1[0].x
+        
+        elif axis == Axis.Y:
+            poly1_2d = [(p.x, p.z) for p in poly1]
+            poly2_2d = [(p.x, p.z) for p in poly2]
+            fixed = poly1[0].y
+
+        else: # axis == Axis.Z:
+            poly1_2d = [(p.x, p.y) for p in poly1]
+            poly2_2d = [(p.x, p.y) for p in poly2]
+            fixed = poly1[0].z
+
+        # calculate 2d intersection
+        poly1_2d = Polygon(poly1_2d)
+        poly2_2d = Polygon(poly2_2d)
+        intersection = poly1_2d.intersection(poly2_2d)
+
+        if intersection.is_empty or not isinstance(intersection, Polygon):
+            return []
+        result3d = []
+
+        for v in intersection.exterior.coords:
+            if axis == Axis.X:   result3d.append(Point3D(fixed, v[0], v[1]))
+            elif axis == Axis.Y: result3d.append(Point3D(v[0], fixed, v[1]))
+            else: result3d.append(Point3D(v[0], v[1], fixed))
+        return result3d
 
 
     def draw_model(self) -> None:
