@@ -66,14 +66,14 @@ class Model(BaseModel):
         segments2_dict: dict[float, list] = {}
         for seg in segments2:
             src = view2.plane_to_real(seg[0])
-            key = float(src[axis_idx])
+            key = round(float(src[axis_idx]), 6)
             segments2_dict.setdefault(key, []).append((src, seg[1]))
 
         for segment1 in segments1:
             # get segment1 end points
             src1 = view1.plane_to_real(segment1[0])
             dst1 = view1.plane_to_real(segment1[1])
-            key = float(src1[axis_idx])
+            key = round(float(src1[axis_idx]), 6)
 
             if key not in self.planes:
                 plane_point = src1.copy()
@@ -116,18 +116,13 @@ class Model(BaseModel):
             # convert view's 2D polygon to 3D & get unit normal
             view_polygon_3d = [view.plane_to_real(coord) 
                 for coord in view.polygon.exterior.coords[:-1]]            
-            unit_normal = first_normal / np.linalg.norm(first_normal)
 
             for (key, (plane_point, plane_normal, polygons)) in self.planes.items():
-                # project the view's polygon into the actual plane
-                view_poly_projected = [geo3d.project_point_to_plane(p, 
-                    unit_normal, plane_point) for p in view_polygon_3d]
-
                 refined_polygons = []
                 for polygon3d in polygons:
                     # 3D coplanar intersection
                     intersection_3d = geo3d.intersect_3dpolygons(
-                        polygon3d, view_poly_projected, plane_axis)
+                        polygon3d, view_polygon_3d, plane_axis)
 
                     if intersection_3d: # if not empty, add
                         refined_polygons.append(intersection_3d)
