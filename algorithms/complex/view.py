@@ -6,10 +6,6 @@ from utils.geo3d import Axis
 
 
 class View(BaseView):
-
-    def __init__(self, path: Path):
-        super().__init__(path)
-
     
     def rasterization_segments(self, line_point, line_dir, step: float, bounds) -> list[tuple]:
         """ Intersect a polygon with lines and collect the resulting segemnts """

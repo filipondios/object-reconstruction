@@ -9,6 +9,11 @@ class Axis(Enum):
     Y = 0x2
     Z = 0x3
 
+class Plane(Enum):
+    XZ = 0x0
+    XY = 0x1
+    YZ = 0x2
+
 
 def intersect_lines(p1, d1, p2, d2) -> np.ndarray:
     """ Intersects two 3D lines p1 + t*d1 & p2 + s*d2. """
