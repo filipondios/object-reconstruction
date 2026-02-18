@@ -67,8 +67,9 @@ class Model(BaseModel):
         segments2_dict: dict[float, list] = {}
         for seg in segments2:
             src = view2.plane_to_real(seg[0])
+            dst = view2.plane_to_real(seg[1])
             key = round(float(src[axis_idx]), 6)
-            segments2_dict.setdefault(key, []).append((src, seg[1]))
+            segments2_dict.setdefault(key, []).append((src, dst))
 
         for segment1 in segments1:
             # get segment1 end points
@@ -77,15 +78,13 @@ class Model(BaseModel):
             key = round(float(src1[axis_idx]), 6)
 
             if key not in self.planes:
-                plane_point = src1.copy()
-                self.planes[key] = (plane_point, plane_normal, [])
+                self.planes[key] = (src1, plane_normal, [])
 
             # get poly list and coplanar segments2
             polygon_list = self.planes[key][2]
             matching = segments2_dict.get(key, [])
 
-            for (src2, seg2_end) in matching:
-                dst2 = view2.plane_to_real(seg2_end)
+            for (src2, dst2) in matching:
                 polygon_list.append([
                     geo3d.intersect_lines(src1, d1, src2, d2),
                     geo3d.intersect_lines(src1, d1, dst2, d2),
@@ -93,6 +92,7 @@ class Model(BaseModel):
                     geo3d.intersect_lines(dst1, d1, src2, d2),
                 ])
 
+        # delete used views
         self.views.pop(view2_index)
         self.views.pop(0)
 
@@ -105,7 +105,7 @@ class Model(BaseModel):
         # get aligned axis from the model's plane normal
         _, (_, first_normal, _) = next(iter(self.planes.items()))
         axis_index = int(np.argmax(np.abs(first_normal)))
-        plane_axis = [geo3d.Axis.X, geo3d.Axis.X, geo3d.Axis.Z][axis_index]
+        plane_axis = [geo3d.Axis.X, geo3d.Axis.Y, geo3d.Axis.Z][axis_index]
 
         for view in self.views:
             # ensure alignment between the view's direction and the planes
