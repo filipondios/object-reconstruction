@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from sympy import Point3D
 from shapely.geometry import Polygon
 import numpy as np
 import cv2

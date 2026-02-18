@@ -1,4 +1,3 @@
-from pathlib import Path
 import numpy as np
 from shapely.geometry import LineString, MultiLineString
 from core.base_view import BaseView

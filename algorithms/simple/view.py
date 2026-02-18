@@ -1,6 +1,7 @@
 import numpy as np
 from shapely.geometry import Point
 from core.base_view import BaseView
+from shapely import contains_xy
 from utils.geo3d import Plane
 
 
@@ -23,3 +24,18 @@ class View(BaseView):
         dot_products = {k: abs(np.dot(self.vy, v)) for k, v in axes.items()}
         axis = max(dot_products, key=dot_products.get)
         return { 'x': Plane.YZ, 'y': Plane.XZ, 'z': Plane.XY }[axis]
+
+
+    def real_to_plane_batch(self, points: np.ndarray) -> np.ndarray:
+        """ Vectorized version of view.real_to_plane (points = (n,3) -> (n,2)) """
+        delta = points - self.origin
+        solution = delta @ self.transform_inv.T
+        return solution
+
+    
+    def points_inside_polygon_batch(self, points_2d: np.ndarray) -> np.ndarray:
+        """ Vectorized polygon containement check """
+        x = points_2d[:, :, 0].flatten()
+        y = points_2d[:, :, 1].flatten()
+        mask = contains_xy(self.polygon, x, y)
+        return mask.reshape(points_2d.shape[0], points_2d.shape[1])
