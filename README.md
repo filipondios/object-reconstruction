@@ -2,7 +2,8 @@
 
 > [!NOTE]  
 > This repository also contains a README in Spanish.  
-> If you prefer to read the documentation in Spanish, please refer to this [README](README_ES.md).
+> If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md).
+> I also keep track of version changes at the [CHANGELOG](docs/CHANGELOG.md) file.
 
 This repository contains the source code for my Bachelor's Thesis project.
 
@@ -89,30 +90,36 @@ with an AMD Ryzen 7 5800X CPU, 16 GB DDR4 RAM, and Windows OS.
 
 Results for José M. Gálvez's algorithm implementation:
 
-| Step (units) | I.R (s) | M.R (s) | Planes (units) | Polygons (units)  | Vertices (units) |
-|--------------|---------|---------|----------------|-------------------|------------------|
-| 8            | 0.517   | 3.3578  | 17             | 19                | 115              |
-| 7            | 0.4541  | 3.0368  | 18             | 17                | 105              |
-| 6            | 0.4834  | 3.644   | 20             | 20                | 128              |
-| 5            | 1.0824  | 7.1731  | 30             | 45                | 253              |
-| 4            | 1.0199  | 7.086   | 32             | 41                | 245              |
-| 3            | 1.1253  | 8.142   | 39             | 46                | 286              |
-| 2            | 2.0125  | 12.3338 | 60             | 69                | 425              |
-| 1            | 5.5638  | 24.0606 | 118            | 133               | 821              |
-| 0.5          | 16.313  | 44.7234 | 228            | 243               | 1531             |
+| Step (units) | I.R (ms) | M.R (ms) | Planes (units) | Polygons (units)  | Vertices (units) |
+|--------------|----------|----------|----------------|-------------------|------------------|
+| 8            | 4.2542   | 2.9248   | 17             | 19                | 115              |
+| 7            | 3.9412   | 2.1471   | 18             | 17                | 105              |
+| 6            | 4.1975   | 2.3298   | 20             | 20                | 128              |
+| 5            | 7.3029   | 5.7738   | 30             | 45                | 253              |
+| 4            | 7.0648   | 5.0973   | 32             | 41                | 245              |
+| 3            | 8.1206   | 4.7164   | 39             | 46                | 286              |
+| 2            | 11.7747  | 7.1158   | 60             | 69                | 425              |
+| 1            | 21.1189  | 13.0215  | 118            | 133               | 821              |
+| 0.5          | 36.9881  | 22.4789  | 228            | 243               | 1531             |
+
+> [!NOTE]  
+> Compared to v1.0.0, version v1.1.0 introduces significant performance optimizations. For the I.R function (using a 0.5 step), execution time was reduced from 16.313 seconds to 36.99 ms, representing a 99.77% time reduction (441.03x speedup). Similarly, the M.R function saw an improvement from 44.7234 seconds to 22.48 ms, achieving a 99.95% reduction and a massive 1,989.57x speedup. You can see the reasons for this improvement in the [CHANGELOG.md](docs/CHANGELOG.md) file.
 
 Results for the simplified (voxel-based) algorithm implementation:
 
-| Resolution (units) | I.R (s)    | M.R (s)   | Total Voxels  | Active Voxels  | Active %  |
-|--------------------|------------|-----------|---------------|----------------|-----------|
-| 8                  | 2.51E-05   | 0.1259    | 512           | 52             | 10.1563   |
-| 16                 | 1.93E-05   | 0.481     | 4096          | 294            | 7.1777    |
-| 24                 | 2.22E-05   | 1.0699    | 13824         | 1144           | 8.2755    |
-| 32                 | 2.56E-05   | 1.9026    | 32768         | 2576           | 7.8613    |
-| 48                 | 5.41E-05   | 4.2783    | 110592        | 8544           | 7.7257    |
-| 64                 | 8.81E-05   | 7.6205    | 262144        | 22174          | 8.4587    |
-| 96                 | 0.00028391 | 17.1236   | 884736        | 70784          | 8.0006    |
-| 128                | 0.00032687 | 30.3715   | 2097152       | 167112         | 7.9685    |
+| Resolution (units) | I.R (ms)  | M.R (ms) | Total Voxels  | Active Voxels  | Active %  |
+|--------------------|-----------|----------|---------------|----------------|-----------|
+| 8                  | 0.0202    | 0.6887   | 512           | 52             | 10.1563   |
+| 16                 | 0.0176    | 0.7191   | 4096          | 294            | 7.1777    |
+| 24                 | 0.0203    | 0.8087   | 13824         | 1144           | 8.2755    |
+| 32                 | 0.0189    | 0.9118   | 32768         | 2576           | 7.8613    |
+| 48                 | 0.0646    | 1.2169   | 110592        | 8544           | 7.7257    |
+| 64                 | 0.1205    | 1.5968   | 262144        | 22174          | 8.4587    |
+| 96                 | 0.3580    | 3.5413   | 884736        | 70784          | 8.0006    |
+| 128                | 0.4710    | 6.1159   | 2097152       | 167112         | 7.9685    |
+
+> [!NOTE]  
+> The optimization in v1.1.0 yielded even more dramatic results for the M.R function: execution time got a 99.98% reduction in processing time, achieving a massive 4,966x speedup. I don't mention here the I.R funcion because its a memory allocation operation and there is no improvement. Again, you can see the upgrades in the [CHANGELOG.md](docs/CHANGELOG.md) file.
 
 ## Project Structure
 

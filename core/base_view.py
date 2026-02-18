@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from sympy import Point3D
 from shapely.geometry import Polygon
 import numpy as np
 import cv2
@@ -8,10 +7,10 @@ import cv2
 
 class BaseView:
 
-    origin: Point3D
-    vx: Point3D
-    vy: Point3D
-    vz: Point3D
+    origin: np.ndarray
+    vx: np.ndarray
+    vy: np.ndarray
+    vz: np.ndarray
     name: str
     polygon: Polygon
 
@@ -26,10 +25,10 @@ class BaseView:
 
         with open(camera_data, 'r') as file:
             data = json.load(file)
-            self.origin = Point3D(data['origin'])
-            self.vx = Point3D(data['vx'])
-            self.vy = Point3D(data['vy'])
-            self.vz = Point3D(data['vz'])
+            self.origin = np.array(data['origin'], dtype=float)
+            self.vx = np.array(data['vx'], dtype=float)
+            self.vy = np.array(data['vy'], dtype=float)
+            self.vz = np.array(data['vz'], dtype=float)
             self.name = data['name']
 
         # Get the  object's projection contour lines
@@ -39,16 +38,16 @@ class BaseView:
         img = cv2.filter2D(img, -1, laplacian) 
 
         # Get the vertices from the contour lines
-        vertices = np.array(self.get_contour_polygon(img))
+        vertices = np.array(self.get_contour_polygon(img), dtype=float)
         min_vals, max_vals = np.min(vertices, axis=0), np.max(vertices, axis=0)
         center = (min_vals + max_vals) / 2
         self.polygon = Polygon(vertices - center)
 
         # calculate view inverse transform matrix
         transform_matrix = np.array([
-            [self.vx.x, self.vz.x],
-            [self.vx.y, self.vz.y],
-            [self.vx.z, self.vz.z]], dtype=float)
+            [self.vx[0], self.vz[0]],
+            [self.vx[1], self.vz[1]],
+            [self.vx[2], self.vz[2]]], dtype=float)
         self.transform_inv = np.linalg.pinv(transform_matrix)
 
     
@@ -62,7 +61,7 @@ class BaseView:
 
         # Iterate through the pixel line
         directions = [(1,0),(0,1),(-1,0),(0,-1)]
-        (ix, iz) = start
+        ix, iz = start
         px, pz = ix, iz # previous pixel
         cx, cz = ix, iz # current pixel
         points = []
@@ -91,20 +90,15 @@ class BaseView:
         return points
 
 
-    def plane_to_real(self, point: tuple[float, float]) -> Point3D:
+    def plane_to_real(self, point: np.ndarray) -> np.ndarray:
         """ Converts a 2D point to a 3D point """
         u = self.vx * point[0]
         v = self.vz * point[1]
         return self.origin + u + v
 
 
-    def real_to_plane(self, point: tuple[float, float, float]) -> tuple[float, float]:
+    def real_to_plane(self, point: np.ndarray) -> np.ndarray:
         """ Converts a 3D point to a 2D point """
-        delta = np.array([
-            point[0] - self.origin.x,
-            point[1] - self.origin.y,
-            point[2] - self.origin.z
-        ], dtype=float)
-        
+        delta = point - self.origin        
         solution = self.transform_inv @ delta
-        return (solution[0], solution[1])
+        return np.array([solution[0], solution[1]])

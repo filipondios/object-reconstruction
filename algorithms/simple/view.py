@@ -1,21 +1,11 @@
-from pathlib import Path
+import numpy as np
 from shapely.geometry import Point
 from core.base_view import BaseView
-from sympy import Matrix
-from enum import Enum
-
-
-class DirectionPlane(Enum):
-    XZ = 0x0
-    XY = 0x1
-    YZ = 0x2
+from shapely import contains_xy
+from utils.geo3d import Plane
 
 
 class View(BaseView):
-
-    def __init__(self, path: Path):
-        super().__init__(path)
-
 
     def is_point_inside_contour(self, point_2d):
         """ Checks if a point is inside the polygon """
@@ -25,12 +15,27 @@ class View(BaseView):
 
     def get_view_direction(self):
         """ Return the axis of the space aligned with Vy """
-        vy = Matrix([self.vy.x, self.vy.y, self.vy.z])
-        axes = { 'x': Matrix([1,0,0]), 'y': Matrix([0,1,0]), 'z': Matrix([0,0,1]) }
-        dot_products = { k: abs(vy.dot(v)) for k, v in axes.items() }
+        axes = {
+            'x': np.array([1, 0, 0], dtype=float),
+            'y': np.array([0, 1, 0], dtype=float),
+            'z': np.array([0, 0, 1], dtype=float),
+        }
+
+        dot_products = {k: abs(np.dot(self.vy, v)) for k, v in axes.items()}
         axis = max(dot_products, key=dot_products.get)
-        return { 
-            'x': DirectionPlane.YZ,
-            'y': DirectionPlane.XZ,
-            'z': DirectionPlane.XY,
-        }[axis]
+        return { 'x': Plane.YZ, 'y': Plane.XZ, 'z': Plane.XY }[axis]
+
+
+    def real_to_plane_batch(self, points: np.ndarray) -> np.ndarray:
+        """ Vectorized version of view.real_to_plane (points = (n,3) -> (n,2)) """
+        delta = points - self.origin
+        solution = delta @ self.transform_inv.T
+        return solution
+
+    
+    def points_inside_polygon_batch(self, points_2d: np.ndarray) -> np.ndarray:
+        """ Vectorized polygon containement check """
+        x = points_2d[:, :, 0].flatten()
+        y = points_2d[:, :, 1].flatten()
+        mask = contains_xy(self.polygon, x, y)
+        return mask.reshape(points_2d.shape[0], points_2d.shape[1])
