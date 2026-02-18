@@ -1,7 +1,7 @@
 
 ## Current developement +v1.1.0
 
-### Eliminating double proyection - [258a2ed](https://github.com/filipondios/object-reconstruction/commit/258a2ed8891d14ee61166552442e7c6203d49e2b)
+### Eliminating double proyection - [#258a2ed](https://github.com/filipondios/object-reconstruction/commit/258a2ed8891d14ee61166552442e7c6203d49e2b)
 
 In the first version, following the indications of the thesis of Gálvez Lamolda, J. M, each polygon contained in the model's planes was proyected to the view's plane, then converted to a 2D polygon using the view's 2D local coordinate system, then calculating the intersection of both the projected and the view's polygon. Once the result was obtained, if the intersection was empty or not a polygon (e.g a LineString), the original 3D polygon was deleted, and in the contary, this polygon is converted to 3D and then proyected to the plane where the original polygon was contained, ovewritting the original one.
 
@@ -114,13 +114,13 @@ def intersect_3dpolygons(self, poly1, poly2, axis) -> list[Point3D]:
         return result3d
 ```
 
-## Using NumPy's [numpy.array](https://numpy.org/doc/stable/reference/generated/numpy.array.html) instead of Sympy's objects
+### Using NumPy's [numpy.array](https://numpy.org/doc/stable/reference/generated/numpy.array.html) instead of Sympy's objects
 
 Otra limitación del programa, es el uso de los objetos [Line3D](https://docs.sympy.org/latest/modules/geometry/lines.html#sympy.geometry.line.Line3D), [Plane](https://docs.sympy.org/latest/modules/geometry/plane.html#sympy.geometry.plane.Plane), [Point3D](https://docs.sympy.org/latest/modules/geometry/points.html#sympy.geometry.point.Point3D) y [Matrix](https://docs.sympy.org/latest/modules/matrices/dense.html#sympy.matrices.dense.Matrix) de Sympy para representar el estado del modelo. Si bien la librería ofrece funciones para intersección de líneas, planos y proyecciones de puntos en planos, estas operaciones son lentas debido a que su implementación es simbólica, no matemática, es decir, no hay una optimización en las operaciones.
 
 La decisión inicial de usar estos objetos fue efectivamente la posibilidad de usar estas funciones y asi evitar en un primer momento la implementación de intersecciones y proyecciones. Sin embargo, el coste de tratar con estos objetos es mucho mayor que el esfuerzo de refactorizar el codigo con  NumPy [ndarray](https://numpy.org/doc/stable/reference/generated/numpy.array.html), junto con las funciones geométricas 3D, que ahora se encuentran en el modulo `utils.geo3d`.
 
-## Improving the Initial Reconstruction
+### Improving the Initial Reconstruction - [#5413458]()
 
 La mejora de este método quizás no es tan evidente como las dos anteriores. Veamos primero como está organizado el codigo de esta función:
 
@@ -226,3 +226,147 @@ for segment1 in segments1:
 ```
 
 El hecho de que la primera implementación fuese tan costosa, fue entre otras cosas debido a implementar de manera literal el procedimiento descrito por Gálvez Lamolda, J. M y la falta de tiempo para razonar mejores estrategias y en general, optimizaciones por tener una fecha de finalización establecida.
+
+## Model Refinement: Getting rid of a useless projection - [#60ea68f](https://github.com/filipondios/object-reconstruction/commit/60ea68f796bea71a6df99a8cda935e833fe898f6)
+
+Right now, the code for the model refinemet function is the following:
+
+```python
+for view in self.views:
+    if np.linalg.norm(np.cross(view.vy, first_normal)) > 1e-6:
+        continue
+
+    view_polygon_3d = [view.plane_to_real(coord) 
+        for coord in view.polygon.exterior.coords[:-1]]            
+    unit_normal = first_normal / np.linalg.norm(first_normal)
+
+    for (key, (plane_point, plane_normal, polygons)) in self.planes.items():
+        view_poly_projected = [geo3d.project_point_to_plane(p,
+            unit_normal, plane_point) for p in view_polygon_3d]
+
+        refined_polygons = []
+        for polygon3d in polygons:
+            intersection_3d = geo3d.intersect_3dpolygons(
+                polygon3d, view_poly_projected, plane_axis)
+
+            if intersection_3d:
+                refined_polygons.append(intersection_3d)
+        self.planes[key] = (plane_point, plane_normal, refined_polygons)
+```
+
+Anteriormente, se trató la optimización de calcular la interseccion 3D entre cada poligono de los planos del modelo y cada una de los poligonos 3D que definen el contorno de las vistas. Sin embargo, hay algo que no sirve de nada hacer: calcular `view_poly_projected` y por tanto, `unit_normal`. Por que? Los planos del modelo son paralelos, teniendo una coordenada fija y al proyectar un punto (digamos un vertice del poligono de la vista) a cada uno de los planos, la unica coordenada que variará será aquella coordenada fija de los planos, que es ignorada en la función de intersección de poligonos 3D.
+
+Imagina que seguimos el procedimiento sin optimizar, tomando los poligonos coplanares ``[(30,0,0),(30,1,0),(30,1,1)]`` y ``[(30,0,0),(30,2,0),(30,1,1)]`` de los que suponemos que uno de ellos es la proyeccion de la vista y cuyos planos son paralelos, con el eje X como normal. El algoritmo de intersección tomará ambos poligonos y al ver que el eje alineado es el X, omitirá dicha coordenada, formando los poligonos bidimensionales ``[(0,0),(1,0),(1,1)]`` y ``[(0,0),(2,0),(1,1)]`` y calculando su interseccion y anadiendo posteriormente la coordenada fija para obtener el poligono 3D resultante.
+
+Lo mismo pasaría si los dos poligonos anteriores no fuesen coplanares, se omitiría esa coordenada. Y es que si nos damos cuenta, el poligono de la vista tambien está contenido en un plano, el de la misma vista. Por tanto, calcular esta proyección es inutil, pues la unica coordenada que varía tras la proyección es ignorada en la intersección. El código quedaría así.
+
+```python
+for view in self.views:
+    if np.linalg.norm(np.cross(view.vy, first_normal)) > 1e-6:
+        continue
+
+    view_polygon_3d = [view.plane_to_real(coord) 
+        for coord in view.polygon.exterior.coords[:-1]]            
+
+    for (key, (plane_point, plane_normal, polygons)) in self.planes.items():
+        refined_polygons = []
+        for polygon3d in polygons:
+            intersection_3d = geo3d.intersect_3dpolygons(
+                polygon3d, view_polygon_3d, plane_axis)
+
+            if intersection_3d:
+                refined_polygons.append(intersection_3d)
+        self.planes[key] = (plane_point, plane_normal, refined_polygons)
+```
+
+## Model refinement: Not converting to 3D - [#2e87093](https://github.com/filipondios/object-reconstruction/commit/2e87093277faeec30ef09c07b4358e666db6cad3)
+
+We can optimize the model refinement function even more. Right now, we are calculating `view_polygon_3d`, that seems necessary in order to calculate the 3D polygon intersection between the view's polygon and each polygon in the model. However, what does `plane_to_real`?:
+
+```python
+def plane_to_real(self, point: np.ndarray) -> np.ndarray:
+    u = self.vx * point[0]
+    v = self.vz * point[1]
+    return self.origin + u + v
+```
+
+Basically, converts a 2D point to a 3D point by adding the missing coordinate, that is the fixed coordinate of the view's plane. For example, imagine we have the point (2, 5) and we want to get the 3D version, and the view's plane normal is the X axis. Its very simple, you just have to do the operations above and you will have a point (x, 2, 5) as a result. What does this imply? That as we talked in the previous optimization, calculating the fixed coordinate is not necessary. 
+
+On the other hand, we are calculating inside of `intersect_3dpolygons` the 3D to 2D transformation of the view's polygon in each iteration of the third loop. We can omit that conversion and pass the polygon's original 2D polygon instead. This means that the functions will be like this:
+
+```python
+def intersect_3dpolygons(poly1, poly2, axis):
+    """ Intersect two coplanar 3D polygons """
+    # poly2 is already 2D here!!
+    if axis == Axis.X:
+        poly1_2d = [(p[1], p[2]) for p in poly1]
+        fixed = poly1[0][0]
+
+    elif axis == Axis.Y:
+        poly1_2d = [(p[0], p[2]) for p in poly1]
+        fixed = poly1[0][1]
+
+    else:
+        poly1_2d = [(p[0], p[1]) for p in poly1]
+        fixed = poly1[0][2]
+
+    poly1_2d = Polygon(poly1_2d)
+    intersection = poly1_2d.intersection(poly2)
+    # ...
+```
+
+```python
+for view in self.views:
+    if np.linalg.norm(np.cross(view.vy, first_normal)) > 1e-6:
+        continue
+
+    for (key, (plane_point, plane_normal, polygons)) in self.planes.items():
+        refined_polygons = []
+        for polygon3d in polygons:
+            intersection_3d = geo3d.intersect_3dpolygons(
+                polygon3d, view.polygon, plane_axis)
+
+            if intersection_3d:
+                refined_polygons.append(intersection_3d)
+        self.planes[key] = (plane_point, plane_normal, refined_polygons)
+```
+
+But this is not completely true. We cannot pass `view.polygon` just like that. That polygon has the 2D coordinate system of the plane in wich the view is contained. If we wanted to use this polygon in another orthogonal plane, some of the coordinates would not be valid and some of them wouldnt be used or other should be generated, following the formula at `plane_to_real`.
+
+This can be obtained implementing this new method at `comples.View`, where the axis parameter indicates the direction of the target plane's normal vector:
+
+```python
+def polygon_view_to_plane(self, axis: Axis) -> list[tuple]:
+    coords = np.array(self.polygon.exterior.coords, dtype=float)
+    u = coords[:, 0]
+    v = coords[:, 1]
+
+    if axis == Axis.X:
+        # transformation to (y, z)
+        y = self.origin[1] + u * self.vx[1] + v * self.vz[1]
+        z = self.origin[2] + u * self.vx[2] + v * self.vz[2]
+        return list(zip(y, z))
+    if axis == Axis.Y:
+        # transformation to (x, z)
+        x = self.origin[0] + u * self.vx[0] + v * self.vz[0]
+        z = self.origin[2] + u * self.vx[2] + v * self.vz[2]
+        return list(zip(x, z))
+    else:
+        # transformation to (x, y)
+        x = self.origin[0] + u * self.vx[0] + v * self.vz[0]
+        y = self.origin[1] + u * self.vx[1] + v * self.vz[1]
+        return list(zip(x, y))
+```
+
+```python
+for view in self.views:
+    # ...
+    poly_view_transform = Polygon(view.polygon_view_to_plane(plane_axis))
+
+    for (key, (plane_point, plane_normal, polygons)) in self.planes.items():
+        refined_polygons = []
+        for polygon3d in polygons:
+            intersection_3d = geo3d.intersect_3dpolygons(
+                polygon3d, poly_view_transform, plane_axis)
+            # ...
+```
