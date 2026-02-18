@@ -48,26 +48,22 @@ def planes_intersection(n1, p1, n2, p2) -> np.ndarray[np.ndarray, np.ndarray]:
 
 def intersect_3dpolygons(poly1, poly2, axis):
     """ Intersect two coplanar 3D polygons """
-    
+    # poly2 must be already processed to 2D here
     if axis == Axis.X:
         poly1_2d = [(p[1], p[2]) for p in poly1]
-        poly2_2d = [(p[1], p[2]) for p in poly2]
         fixed = poly1[0][0]
-    
+
     elif axis == Axis.Y:
         poly1_2d = [(p[0], p[2]) for p in poly1]
-        poly2_2d = [(p[0], p[2]) for p in poly2]
         fixed = poly1[0][1]
 
     else: # axis == Axis.Z:
         poly1_2d = [(p[0], p[1]) for p in poly1]
-        poly2_2d = [(p[0], p[1]) for p in poly2]
         fixed = poly1[0][2]
 
     # calculate 2d intersection
     poly1_2d = Polygon(poly1_2d)
-    poly2_2d = Polygon(poly2_2d)
-    intersection = poly1_2d.intersection(poly2_2d)
+    intersection = poly1_2d.intersection(poly2)
 
     if intersection.is_empty or not isinstance(intersection, Polygon):
         return []

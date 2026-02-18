@@ -1,5 +1,6 @@
 import pyray as rl
 import numpy as np
+from shapely import Polygon
 from algorithms.complex.view import View
 from core.base_model import BaseModel
 import utils.geo3d as geo3d
@@ -108,21 +109,16 @@ class Model(BaseModel):
 
         for view in self.views:
             # ensure alignment between the view's direction and the planes
-            if np.linalg.norm(np.cross(view.vy, first_normal)) > 1e-6:
-                continue
-
-            print(f'[+] Using {view.name} to refine.')            
-
-            # convert view's 2D polygon to 3D & get unit normal
-            view_polygon_3d = [view.plane_to_real(coord) 
-                for coord in view.polygon.exterior.coords[:-1]]            
+            if np.linalg.norm(np.cross(view.vy, first_normal)) > 1e-6: continue
+            poly_view_transform = Polygon(view.polygon_view_to_plane(plane_axis))
+            print(f'[+] Using {view.name} to refine.')
 
             for (key, (plane_point, plane_normal, polygons)) in self.planes.items():
                 refined_polygons = []
                 for polygon3d in polygons:
-                    # 3D coplanar intersection
+                    # 3D coplanar intersection between polygons
                     intersection_3d = geo3d.intersect_3dpolygons(
-                        polygon3d, view_polygon_3d, plane_axis)
+                        polygon3d, poly_view_transform, plane_axis)
 
                     if intersection_3d: # if not empty, add
                         refined_polygons.append(intersection_3d)

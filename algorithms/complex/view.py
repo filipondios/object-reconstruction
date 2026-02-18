@@ -1,7 +1,8 @@
 from pathlib import Path
-from shapely.geometry import LineString, MultiLineString
 import numpy as np
+from shapely.geometry import LineString, MultiLineString
 from core.base_view import BaseView
+from utils.geo3d import Axis
 
 
 class View(BaseView):
@@ -9,7 +10,7 @@ class View(BaseView):
     def __init__(self, path: Path):
         super().__init__(path)
 
-
+    
     def rasterization_segments(self, line_point, line_dir, step: float, bounds) -> list[tuple]:
         """ Intersect a polygon with lines and collect the resulting segemnts """
         # project the common line onto the view to get segment direction
@@ -55,3 +56,27 @@ class View(BaseView):
                             coords = list(seg.coords)
                             segments.append((coords[0], coords[-1]))
         return segments
+    
+
+    def polygon_view_to_plane(self, axis: Axis) -> list[tuple]:
+        """ converts a local view 2D coordinate polygon to a 2D coordinate 
+            in a plane with a normal in the same direction than axis """
+        coords = np.array(self.polygon.exterior.coords, dtype=float)
+        u = coords[:, 0]
+        v = coords[:, 1]
+
+        if axis == Axis.X:
+            # transformation to (y, z)
+            y = self.origin[1] + u * self.vx[1] + v * self.vz[1]
+            z = self.origin[2] + u * self.vx[2] + v * self.vz[2]
+            return list(zip(y, z))
+        if axis == Axis.Y:
+            # transformation to (x, z)
+            x = self.origin[0] + u * self.vx[0] + v * self.vz[0]
+            z = self.origin[2] + u * self.vx[2] + v * self.vz[2]
+            return list(zip(x, z))
+        else:
+            # transformation to (x, y)
+            x = self.origin[0] + u * self.vx[0] + v * self.vz[0]
+            y = self.origin[1] + u * self.vx[1] + v * self.vz[1]
+            return list(zip(x, y))
