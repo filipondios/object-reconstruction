@@ -1,37 +1,65 @@
+import importlib
+import pkgutil
+from pathlib import Path
+
+
+def discover_algorithms():
+    """ auto-discover all algorithms in 'algorithms' directory"""
+    algorithms_path = Path('algorithms')
+    algorithms = {}
+    
+    for _, name, ispkg in pkgutil.iter_modules([str(algorithms_path)]):
+        if ispkg and not name.startswith('_'):
+            try:
+                module = importlib.import_module(f'algorithms.{name}')
+                if hasattr(module, 'Model') and hasattr(module, 'ALGORITHM_NAME'):
+                    algorithms[module.ALGORITHM_NAME] = {
+                        'module': module,
+                        'Model': module.Model,
+                        'params': getattr(module, 'ALGORITHM_PARAMS', {})
+                    }
+            except Exception as e:
+                print(f"[!] Failed to load algorithm '{name}': {e}")
+    return algorithms
+
+
 if __name__ == '__main__':
-
-    # Print startup information
-    file = open('config/startup.txt', 'r')
-    print(file.read())
-
+    
+    import sys
     from argparse import ArgumentParser
-    from algorithms.complex.model import Model as ComplexModel
-    from algorithms.simple.model import Model as SimpleModel
     from core.model_render import ModelRender
 
-    # Argument parsing (program options)
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--path', type=str, required=True, help='Model path.')
-    parser.add_argument('-c', '--complexity', type=str, required=True, help='Reconstruction algorithm complexity. Options: complex, simple.')
-    parser.add_argument('-s', '--step', type=float, required=False, help='Rasterization segments separation (Used in the complex algorithm).')
-    parser.add_argument('-r', '--resolution', type=int, required=False, help='Voxel resolution (Used in the simple algorithm). Default: 8')
-    parser.add_argument('-i', '--info', action='store_true', required=False, help='Print additional information about the model.')
+    algorithms = discover_algorithms()
+    if not algorithms: sys.exit('[!] No algorithms found!')
+
+    # build program arguments, then parse the command line args
+    parser = ArgumentParser(description='3D Object Reconstruction')
+    parser.add_argument('-p', '--path', type=str, required=True, 
+        help='Path of the model data to be reconstructed')
+    parser.add_argument('-a', '--algorithm', type=str, required=True,
+        help='Name of the reconstruction algorithm to use', 
+        choices=list(algorithms.keys()))
+    parser.add_argument('-i', '--info', action='store_true', 
+        help='Print additional information')
+
+    # add the arguments for all loaded algorithms
+    for algo_name, algo_info in algorithms.items():
+        for (param_name, param_config) in algo_info['params'].items():
+            parser.add_argument(f'--{param_name}', type=param_config['type'],
+                required=param_config.get('required', False),
+                default=param_config.get('default'),
+                help=f'[{algo_name}] ' + param_config.get('help', 'No available info'))
     args = parser.parse_args()
 
+    # build kwargs from algorithm parameters
+    model_kwargs = { 'path': args.path, 'print_info': args.info }
+    for param_name in algo_info['params'].keys():
+        value = getattr(args, param_name, None)
+        if value is not None: model_kwargs[param_name] = value
 
-    if args.complexity == 'complex':
-        # Polygon implementation
-        if args.step is None:
-            step = 1
-        else: step = args.step
-        model = ComplexModel(args.path, args.info, step)
-
-    elif args.complexity == 'simple':
-        # Voxels implementation
-        if args.resolution is None:
-            resolution = 8
-        else: resolution = args.resolution
-        model = SimpleModel(args.path, args.info, resolution)
+    # instantiate the model and build
+    ModelClass = algo_info['Model']
+    model = ModelClass(**model_kwargs)
 
     render = ModelRender(model)
     render.initialize()
