@@ -15,11 +15,6 @@ This repository contains the source code for my Bachelor's Thesis project.
 4. [Benchmarks](#benchmarks)  
 5. [Project Structure](#project-structure)  
 6. [Possible Improvements to Current Algorithms](#possible-improvements-to-current-algorithms)  
-7. [Creating New Reconstruction Algorithms](#creating-new-reconstruction-algorithms)  
-   7.1 [The BaseModel Class](#the-basemodel-class)  
-   7.2 [The BaseView Class](#the-baseview-class)  
-   7.3 [Integrating the New Algorithm](#integrating-the-new-algorithm)  
-8. [Creating New Objects](#creating-new-objects)  
 
 ## Introduction
 
