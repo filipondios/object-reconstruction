@@ -142,37 +142,3 @@ ramps. Although the introduction stated that circular surfaces are not
 allowed—and this possibility is not listed as a future improvement—this is
 because distinguishing between ramps and circular surfaces is an almost
 impossible task.
-
-
-## Creating New Objects
-
-In the `examples/` directory, you can find several objects along with their 
-corresponding views. A model is composed of a series of subdirectories, each
-describing a view. Each view must contain a `camera.json` file that defines the
-orientation and position of the camera, as well as the orthogonal projection of
-the object for that camera configuration in the `plane.bmp` file.
-
-The contents of the `camera.json` file simply represent the attributes of a 
-`BaseView` object. For example, a file describing the position and orientation
-of the camera might look like this:
-
-```json
-{
-  "name": "elevation",
-  "origin": [40, 0, 0],
-  "vx": [0, -1, 0],
-  "vy": [-1, 0, 0],
-  "vz": [0, 0, 1]
-}
-```
-
-> [!NOTE]  
-> The `Vx`, `Vy`, and `Vz` vectors must be normalized to avoid potential errors 
-> in the reconstruction methods. These vectors are not normalized automatically
-> when loaded into a `BaseView` object.
-
-On the other hand, the object projections stored in the `plane.bmp` images must 
-follow the expected format to correctly extract the polyline that defines the 
-projection contour: The background should be white (`255`), the figure's edges 
-should be black (`0`), and the inner area of the figure can be filled with any 
-other RGB color.
