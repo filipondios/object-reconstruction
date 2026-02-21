@@ -1,9 +1,7 @@
 # Object Reconstruction
 
 > [!NOTE]  
-> This repository also contains a README in Spanish.  
-> If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md).
-> I also keep track of version changes at the [CHANGELOG](docs/CHANGELOG.md) file.
+> This repository also contains a README in Spanish. If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md). I also keep track of version changes at the [CHANGELOG](docs/CHANGELOG.md) file and there is more information about the project at the [wiki](https://github.com/filipondios/object-reconstruction/wiki).
 
 This repository contains the source code for my Bachelor's Thesis project.
 
