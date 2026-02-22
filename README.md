@@ -1,9 +1,7 @@
 # Object Reconstruction
 
 > [!NOTE]  
-> This repository also contains a README in Spanish.  
-> If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md).
-> I also keep track of version changes at the [CHANGELOG](docs/CHANGELOG.md) file.
+> This repository also contains a README in Spanish. If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md). I also keep track of version changes at the [CHANGELOG](docs/CHANGELOG.md) file and there is more information about the project at the [wiki](https://github.com/filipondios/object-reconstruction/wiki), like for example how to incorporate new algorithms and objects.
 
 This repository contains the source code for my Bachelor's Thesis project.
 
@@ -17,11 +15,6 @@ This repository contains the source code for my Bachelor's Thesis project.
 4. [Benchmarks](#benchmarks)  
 5. [Project Structure](#project-structure)  
 6. [Possible Improvements to Current Algorithms](#possible-improvements-to-current-algorithms)  
-7. [Creating New Reconstruction Algorithms](#creating-new-reconstruction-algorithms)  
-   7.1 [The BaseModel Class](#the-basemodel-class)  
-   7.2 [The BaseView Class](#the-baseview-class)  
-   7.3 [Integrating the New Algorithm](#integrating-the-new-algorithm)  
-8. [Creating New Objects](#creating-new-objects)  
 
 ## Introduction
 
@@ -142,140 +135,3 @@ ramps. Although the introduction stated that circular surfaces are not
 allowed—and this possibility is not listed as a future improvement—this is
 because distinguishing between ramps and circular surfaces is an almost
 impossible task.
-
-## Creating New Reconstruction Algorithms
-
-### The BaseModel Class
-
-As explained in the previous section, all algorithms in this project use the 
-`BaseModel` and `BaseView` classes. The `BaseModel` class contains abstract 
-methods that define each stage of the reconstruction process, which must be
-overridden by specific reconstruction algorithms. It also includes a method to 
-draw the reconstructed object in 3D space and another to display additional 
-information after reconstruction.
-
-```python
-class BaseModel:
-
-  def __init__(self, path: str, print_info: bool, viewClass: BaseView)
-    # Initialization of other properties...
-    self.initial_reconstruction()
-    self.refine_model()
-    self.generate_surface()
-    if self.print_info: self.additional_info()
-
-  @abstractmethod
-  def initial_reconstruction(self):
-    warnings.warn('TODO')
-
-  @abstractmethod
-  def refine_model(self):
-    warnings.warn('TODO')
-
-  @abstractmethod
-  def generate_surface(self):
-    warnings.warn('TODO')
-
-  @abstractmethod
-  def draw_model(self):
-    warnings.warn('TODO')
-
-  @abstractmethod
-  def additional_info(self):
-    warnings.warn('TODO')
-```
-
-As shown, the constructor of the ``BaseModel`` class calls the three 
-reconstruction functions in sequence and optionally displays extra information. 
-The draw_model method is used in the ModelRender class to render the 3D model 
-using the raylib library.
-
-> [!TIP]  
-> The `BaseModel` class includes additional attributes that provide more 
-> information. These include: A list of views of the object and a tuple that
-> stores the dimensions or bounding box enclosing the actual object. For more
-> details, see the [BaseModel](core/base_model.py) class.
-
-### The BaseView Class
-
-The idea behind the `BaseView` class is to store all the information related to 
-a view of the model. This includes the position and orientation of the camera 
-used to take an image of the object to be reconstructed, represented by three 
-vectors `Vx`, `Vy`, `Vz` and a point `O`, as illustrated below:
-
-<div align='center'>
-<img width="500" alt="image" src="https://github.com/user-attachments/assets/25266148-5bb3-4982-a6d1-bd185c790d0d" />
-</div>
-
-In addition to the camera information, it stores the 2D polyline (list of points)
-that defines the contour of the object's projection, i.e., the view's image.
-Although the polyline of the view's contour is obtained, internal polygons that 
-might define transverse holes are not.
-
-The `BaseView` class also includes a method that allows projecting 3D points
-onto the view plane and converting them into 2D coordinates relative to the 
-origin `O` of the view, and another method that converts 2D coordinates back 
-into 3D coordinates.
-
-```python
-class BaseView:
-
-  def __init__(self, path: Path):
-    # Initializes Vx, Vy, Vz, O
-
-  def plane_to_real(self, point: tuple[float, float]):
-    # Converts a 2D point to 3D
-
-  def real_to_plane(self, point: tuple[float, float, float]):
-    # Converts a 3D point to 2D
-```
-
-These methods are very useful during the reconstruction process, as they are 
-frequently used in classes that inherit from `BaseModel`. Unlike `BaseModel`,
-`BaseView` already contains almost all the necessary information, so it is 
-common for new algorithms to use `BaseView` directly rather than inherit from it.
-
-### Integrating the New Algorithm
-
-Once the developer has created a new reconstruction algorithm using the 
-`BaseModel` class, it can be integrated by adding a new option to the 
-`--complexity` parameter in `main.py`. The necessary arguments must also be 
-passed to the new reconstruction algorithm in this file.
-
-> [!NOTE]  
-> In future versions of the program, functionality might be added to make it 
-> easier to integrate new algorithms automatically without modifying the 
-> `main.py` file. In the meantime, the manual approach must be used.
-
-## Creating New Objects
-
-In the `examples/` directory, you can find several objects along with their 
-corresponding views. A model is composed of a series of subdirectories, each
-describing a view. Each view must contain a `camera.json` file that defines the
-orientation and position of the camera, as well as the orthogonal projection of
-the object for that camera configuration in the `plane.bmp` file.
-
-The contents of the `camera.json` file simply represent the attributes of a 
-`BaseView` object. For example, a file describing the position and orientation
-of the camera might look like this:
-
-```json
-{
-  "name": "elevation",
-  "origin": [40, 0, 0],
-  "vx": [0, -1, 0],
-  "vy": [-1, 0, 0],
-  "vz": [0, 0, 1]
-}
-```
-
-> [!NOTE]  
-> The `Vx`, `Vy`, and `Vz` vectors must be normalized to avoid potential errors 
-> in the reconstruction methods. These vectors are not normalized automatically
-> when loaded into a `BaseView` object.
-
-On the other hand, the object projections stored in the `plane.bmp` images must 
-follow the expected format to correctly extract the polyline that defines the 
-projection contour: The background should be white (`255`), the figure's edges 
-should be black (`0`), and the inner area of the figure can be filled with any 
-other RGB color.
