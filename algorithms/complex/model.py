@@ -11,12 +11,12 @@ class Model(BaseModel):
     """ basically [key] -> (plane_point, plane_normal, polygons_in_plane) """
     planes: dict[float, tuple[np.ndarray, np.ndarray, list[list[np.ndarray]]]]
 
-    def __init__(self, path: str, print_info: bool, step: float):
+    def __init__(self, path: str, step: float):
         self.planes = {}
         self.edges = []
         self.step = step
         self.planes_normal = geo3d.Axis.Null
-        super().__init__(path, print_info, View)
+        super().__init__(path, View)
 
 
     def initial_reconstruction(self):
@@ -52,7 +52,6 @@ class Model(BaseModel):
 
         segments1 = view1.rasterization_segments(line_point, line_dir, self.step, bounds)
         segments2 = view2.rasterization_segments(line_point, line_dir, self.step, bounds)
-        print(f'[+] Using {view1.name} and {view2.name} for initial reconstruction.')
 
         # Calculate the axis aligned with the common line
         abs_dir = np.abs(line_dir)
@@ -95,6 +94,7 @@ class Model(BaseModel):
         # delete used views
         self.views.pop(view2_index)
         self.views.pop(0)
+        return self
 
 
     def refine_model(self):
@@ -111,7 +111,6 @@ class Model(BaseModel):
             # ensure alignment between the view's direction and the planes
             if np.linalg.norm(np.cross(view.vy, first_normal)) > 1e-6: continue
             poly_view_transform = Polygon(view.polygon_view_to_plane(plane_axis))
-            print(f'[+] Using {view.name} to refine.')
 
             for (key, (plane_point, plane_normal, polygons)) in self.planes.items():
                 refined_polygons = []
@@ -123,6 +122,7 @@ class Model(BaseModel):
                     if intersection_3d: # if not empty, add
                         refined_polygons.append(intersection_3d)
                 self.planes[key] = (plane_point, plane_normal, refined_polygons)
+        return self
 
 
     def draw_model(self):
