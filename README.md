@@ -1,7 +1,7 @@
 # Object Reconstruction
 
 > [!NOTE]  
-> This repository also contains a README in Spanish. If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md). I also keep track of version changes at the [CHANGELOG](docs/CHANGELOG.md) file and there is more information about the project at the [wiki](https://github.com/filipondios/object-reconstruction/wiki).
+> This repository also contains a README in Spanish. If you prefer to read the documentation in Spanish, please refer to this [README](docs/README_ES.md). I also keep track of version changes at the [CHANGELOG](docs/CHANGELOG.md) file and there is more information about the project at the [wiki](https://github.com/filipondios/object-reconstruction/wiki), like for example how to incorporate new algorithms and objects.
 
 This repository contains the source code for my Bachelor's Thesis project.
 
@@ -15,11 +15,6 @@ This repository contains the source code for my Bachelor's Thesis project.
 4. [Benchmarks](#benchmarks)  
 5. [Project Structure](#project-structure)  
 6. [Possible Improvements to Current Algorithms](#possible-improvements-to-current-algorithms)  
-7. [Creating New Reconstruction Algorithms](#creating-new-reconstruction-algorithms)  
-   7.1 [The BaseModel Class](#the-basemodel-class)  
-   7.2 [The BaseView Class](#the-baseview-class)  
-   7.3 [Integrating the New Algorithm](#integrating-the-new-algorithm)  
-8. [Creating New Objects](#creating-new-objects)  
 
 ## Introduction
 
