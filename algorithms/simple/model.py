@@ -12,23 +12,24 @@ class Model(BaseModel):
     cubes: list[tuple[float, float, float]]
     cube_size: tuple[float, float, float]
 
-    def __init__(self, path: str, print_info: bool, resolution: int):
+    def __init__(self, path: str, resolution: int):
         self.resolution = resolution
         self.cubes = []
-        super().__init__(path, print_info, View)
+        super().__init__(path, View)
 
 
-    def initial_reconstruction(self) -> None:
+    def initial_reconstruction(self):
         """ Initializes the voxel space """
         self.voxel_space = np.ones((self.resolution,)*3, dtype=bool)
+        return self
 
 
-    def refine_model(self) -> None:
+    def refine_model(self):
         """ Reconstructs the model directly """
         for view in self.views:
             # Merge each view voxel space with the model's
-            print(f'[+] Using {view.name} to reconstruct.')
             self.project_view_to_voxels(view)
+        return self
 
 
     def project_view_to_voxels(self, view: View) -> None:
@@ -98,13 +99,14 @@ class Model(BaseModel):
         if not len(active_idx):
             self.cubes = []
             return
-        
+
         # vectorized coordinate calculation
         fx = lambda a, b, i: a + i * (b - a) / res
         cx = fx(self.bounds[0], self.bounds[1], active_idx[:, 0])
         cy = fx(self.bounds[2], self.bounds[3], active_idx[:, 1])
         cz = fx(self.bounds[4], self.bounds[5], active_idx[:, 2])
         self.cubes = list(zip(cx, cy, cz))
+        return self
 
 
     def draw_model(self) -> None:

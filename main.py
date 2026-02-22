@@ -52,14 +52,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # build kwargs from algorithm parameters
-    model_kwargs = { 'path': args.path, 'print_info': args.info }
+    model_kwargs = { 'path': args.path }
     for param_name in algo_info['params'].keys():
         value = getattr(args, param_name, None)
         if value is not None: model_kwargs[param_name] = value
 
     # instantiate the model and build
     ModelClass = algo_info['Model']
-    model = ModelClass(**model_kwargs)
+    model = ModelClass(**model_kwargs).initial_reconstruction(
+        ).refine_model().generate_surface()    
+    if args.info: model.additional_info()
 
     render = ModelRender(model)
     render.initialize()
