@@ -51,13 +51,13 @@ The program's entry point is the `main.py` file located at the root of the
 project. Make sure to first install the [requirements](requirements.txt).
 
 ```bash
-python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
+python main.py [-h] -p <path> -a <algorithm> [-s <step>] [-r <resolution>] [-i]
 ```
 
 | Parameter | Required | Default Value | Description                                                                                                                  |
 |:---------:|:--------:|:-------------:|:-----------------------------------------------------------------------------------------------------------------------------|
 | `-p`      | yes      | none          | Path to the model to be reconstructed.                                                                                       |
-| `-c`      | yes      | none          | Complexity of the algorithm used for reconstruction. Two default options are available: `simple` or `complex`.               |
+| `-a`      | yes      | none          | Algorithm used for reconstruction. Two default options are available: `simple` or `complex`.                                 |
 | `-s`      | no       | 1.0           | Step size between raster segments for the `complex` algorithm. The smaller the step, the higher the reconstruction accuracy. |
 | `-r`      | no       | 8             | Voxel space resolution for the `simple` algorithm. Higher resolution leads to more accurate reconstruction.                  |
 | `-i`      | no       | none          | Displays additional information about the reconstructed model after the process ends.                                        |
@@ -65,7 +65,16 @@ python main.py [-h] -p <path> -c <complexity> [-s <step>] [-r <resolution>] [-i]
 <!-- Demo video, just trying some models from the examples -->
 [![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
 
+> [!NOTE]  
+> This video preview is deprecated. Since version v1.1.0, the video algorithms have gone from
+> taking tens of seconds to milliseconds thanks to certain optimizations.
+
 ## Benchmarks
+
+> [!IMPORTANT]  
+> Since version v1.1.0, there have been significant performance improvements (around 90%),
+> and benchmark tests are now outdated. However, until better tests are developed, these
+> are the results for a standard object.
 
 Below are the benchmark results for the two algorithms implemented in this 
 project. First, the results obtained with José M. Gálvez's algorithm are shown,
@@ -95,9 +104,6 @@ Results for José M. Gálvez's algorithm implementation:
 | 1            | 21.1189  | 13.0215  | 118            | 133               | 821              |
 | 0.5          | 36.9881  | 22.4789  | 228            | 243               | 1531             |
 
-> [!NOTE]  
-> Compared to v1.0.0, version v1.1.0 introduces significant performance optimizations. For the I.R function (using a 0.5 step), execution time was reduced from 16.313 seconds to 36.99 ms, representing a 99.77% time reduction (441.03x speedup). Similarly, the M.R function saw an improvement from 44.7234 seconds to 22.48 ms, achieving a 99.95% reduction and a massive 1,989.57x speedup. You can see the reasons for this improvement in the [CHANGELOG.md](docs/CHANGELOG.md) file.
-
 Results for the simplified (voxel-based) algorithm implementation:
 
 | Resolution (units) | I.R (ms)  | M.R (ms) | Total Voxels  | Active Voxels  | Active %  |
@@ -110,9 +116,6 @@ Results for the simplified (voxel-based) algorithm implementation:
 | 64                 | 0.1205    | 1.5968   | 262144        | 22174          | 8.4587    |
 | 96                 | 0.3580    | 3.5413   | 884736        | 70784          | 8.0006    |
 | 128                | 0.4710    | 6.1159   | 2097152       | 167112         | 7.9685    |
-
-> [!NOTE]  
-> The optimization in v1.1.0 yielded even more dramatic results for the M.R function: execution time got a 99.98% reduction in processing time, achieving a massive 4,966x speedup. I don't mention here the I.R funcion because its a memory allocation operation and there is no improvement. Again, you can see the upgrades in the [CHANGELOG.md](docs/CHANGELOG.md) file.
 
 ## Project Structure
 
