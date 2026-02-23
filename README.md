@@ -14,7 +14,7 @@ This repository contains the source code for my Bachelor's Thesis project.
 3. [Program Execution](#program-execution)  
 4. [Benchmarks](#benchmarks)  
 5. [Project Structure](#project-structure)  
-6. [Possible Improvements to Current Algorithms](#possible-improvements-to-current-algorithms)  
+6. [Improvements to Current Algorithms](#improvements-to-current-algorithms)  
 
 ## Introduction
 
@@ -51,7 +51,7 @@ The program's entry point is the `main.py` file located at the root of the
 project. Make sure to first install the [requirements](requirements.txt).
 
 ```bash
-python main.py [-h] -p <path> -a <algorithm> [-s <step>] [-r <resolution>] [-i]
+python main.py [-h] -p <path> -a <algorithm> [-s <step>] [-r <resolution>]
 ```
 
 | Parameter | Required | Default Value | Description                                                                                                                  |
@@ -60,7 +60,6 @@ python main.py [-h] -p <path> -a <algorithm> [-s <step>] [-r <resolution>] [-i]
 | `-a`      | yes      | none          | Algorithm used for reconstruction. Two default options are available: `simple` or `complex`.                                 |
 | `-s`      | no       | 1.0           | Step size between raster segments for the `complex` algorithm. The smaller the step, the higher the reconstruction accuracy. |
 | `-r`      | no       | 8             | Voxel space resolution for the `simple` algorithm. Higher resolution leads to more accurate reconstruction.                  |
-| `-i`      | no       | none          | Displays additional information about the reconstructed model after the process ends.                                        |
 
 <!-- Demo video, just trying some models from the examples -->
 [![Demo video]](https://github.com/user-attachments/assets/d36af441-2e58-4a1c-be3e-91232300ddf8)
@@ -129,7 +128,7 @@ located in the files `core/base_model.py` and `core/base_view.py`, to describe
 the reconstructed objects and their views. Once the object is reconstructed, it
 is rendered using the `ModelRender` class located in `core/model_render.py`.
 
-## Possible Improvements to Current Algorithms
+## Improvements to Current Algorithms
 
 It is clear that the number of objects that the current algorithms can handle is
 limited due to the many constraints imposed on this project. Therefore, some 
