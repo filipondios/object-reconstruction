@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.1] - 2026-02-18
+## [1.2.0] - 2026-02-23
+
+### Added
+
+- Dynamic algorithm discovery at the [algorithms] directory.
+- How to create new objects and algorithms documentation at the [wiki].
+
+## Removed
+
+- How to create new objects and algorithms documentation at the ``README.md`` file.
+- Reconstruction methods inside the `BaseModel` class, now they are all called at `main.py`.
+- Model reconstruction information from both `simple` and `complex` models, with the goal of preparing the code for future versions with a better logging system.
+
+
+## [1.1.0] - 2026-02-18
 
 ### Added
 
@@ -58,5 +72,8 @@ All notable changes to this project will be documented in this file. The format 
 - Interactive 3D visualization with camera controls
 - Command-line interface for model reconstruction
 
+[wiki]: https://github.com/filipondios/object-reconstruction/wiki
+[algorithms]: https://github.com/filipondios/object-reconstruction/tree/main/algorithms
+[1.2.0]: https://github.com/filipondios/object-reconstruction/tree/refs/tags/v1.2.0
 [1.1.0]: https://github.com/filipondios/object-reconstruction/tree/refs/tags/v1.1.0
 [1.0.0]: https://github.com/filipondios/object-reconstruction/tree/refs/tags/v1.0.0
