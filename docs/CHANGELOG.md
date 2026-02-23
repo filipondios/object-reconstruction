@@ -2,7 +2,6 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<<<<<<< HEAD
 ## [1.2.0] - 2026-02-23
 
 ### Added
@@ -16,9 +15,6 @@ All notable changes to this project will be documented in this file. The format 
 - Reconstruction methods inside the `BaseModel` class, now they are all called at `main.py`.
 - Model reconstruction information from both `simple` and `complex` models, with the goal of preparing the code for future versions with a better logging system.
 
-
-=======
->>>>>>> f5d788728e11b866245dc476a5bfb2b7f8b1cc09
 ## [1.1.0] - 2026-02-18
 
 ### Added
